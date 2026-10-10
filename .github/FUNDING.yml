@@ -1,0 +1,5 @@
+# Enable once the page exists, then delete the leading `#`.
+# GitHub validates these values, and a wrong slug breaks the Sponsor button.
+#
+# open_collective: your-collective-slug
+# github: [SkvorikovCode]
