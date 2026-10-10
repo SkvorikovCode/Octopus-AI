@@ -3,6 +3,7 @@ mod mcp;
 mod omp;
 mod providers;
 mod pty;
+mod rules;
 mod search;
 mod sessions;
 mod checkpoints;
@@ -69,6 +70,9 @@ pub fn run() {
             instructions::instructions_get,
             instructions::instructions_save,
             instructions::instructions_read_claude,
+            rules::rules_list,
+            rules::rule_save,
+            rules::rule_delete,
         ])
         .on_window_event(|window, event| {
             if let tauri::WindowEvent::Destroyed = event {
