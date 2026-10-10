@@ -9,6 +9,7 @@ import {
   type Scope,
 } from "../lib/instructions";
 import { t, tErr } from "../lib/i18n";
+import { RulesSection } from "./Rules";
 import "./settings.css";
 import "./instructions.css";
 
@@ -255,6 +256,8 @@ export function InstructionsSection({
         ) : (
           <p className="ins-hint">{t("Откройте проект, чтобы задать его инструкции.")}</p>
         ))}
+
+      <RulesSection project={project} />
     </div>
   );
 }

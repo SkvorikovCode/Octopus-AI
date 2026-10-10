@@ -21,6 +21,7 @@ import settings from "./settings";
 import shell from "./shell";
 import work from "./work";
 import instructions from "./instructions";
+import rules from "./rules";
 
 /** All English strings, keyed by the Russian source text. */
-export const EN: Record<string, string> = { ...backend, ...session, ...markdown, ...shell, ...chat, ...settings, ...work, ...checkpoints, ...review, ...search, ...theme, ...plan, ...gitops, ...connections, ...onboarding, ...worktrees, ...terminal, ...context, ...sidebar, ...budget, ...prices, ...app, ...instructions };
+export const EN: Record<string, string> = { ...backend, ...session, ...markdown, ...shell, ...chat, ...settings, ...work, ...checkpoints, ...review, ...search, ...theme, ...plan, ...gitops, ...connections, ...onboarding, ...worktrees, ...terminal, ...context, ...sidebar, ...budget, ...prices, ...app, ...instructions, ...rules };

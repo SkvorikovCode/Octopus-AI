@@ -1,0 +1,86 @@
+/* Rules section of the Instructions tab: the card, two groups of rule rows, the edit modal.
+   Classes are prefixed `rl-`. Shared look comes from settings.css (set-card, set-head, set-h, set-desc,
+   set-seg, set-switch, set-knob, set-input, set-textarea, set-danger) and global .card, .btn, .label,
+   .overlay, .modal, .err-card. Colors are tokens only, so both themes work. */
+
+.rl { container: rl / inline-size; }
+
+.rl-group { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.rl-group-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 30px; }
+.rl-group-title { margin: 0; }
+.rl-add { height: 30px; padding: 0 12px; font-size: 13px; flex-shrink: 0; }
+
+.rl-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; min-width: 0; }
+.rl-list li + li { border-top: 1px solid var(--line); }
+
+.rl-row {
+  display: flex; flex-direction: column; align-items: stretch; gap: 3px;
+  width: calc(100% + 16px); box-sizing: border-box; min-width: 0;
+  margin: 0 -8px; padding: 10px 8px; border-radius: 8px;
+  color: var(--ink); text-align: left; font: inherit;
+}
+button.rl-row { cursor: pointer; background: transparent; border: 0; }
+button.rl-row:hover { background: var(--panel-2); }
+.rl-row-ro { cursor: default; }
+
+.rl-row-top { display: flex; align-items: center; gap: 10px; min-width: 0; flex-wrap: wrap; }
+.rl-name {
+  font-family: var(--mono); font-size: 13px; color: var(--ink);
+  overflow-wrap: anywhere; min-width: 0;
+}
+.rl-desc {
+  font-size: 13px; line-height: 1.4; color: var(--mute);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0;
+}
+.rl-globs,
+.rl-loc {
+  font-family: var(--mono); font-size: 11px; line-height: 1.4; color: var(--dim);
+  overflow-wrap: anywhere; min-width: 0;
+}
+
+/* Mode badge: the one state a rule shows (same look as .mp-src) */
+.rl-badge {
+  display: inline-block; padding: 1px 7px; border-radius: 999px; white-space: nowrap;
+  border: 1px solid var(--line-3);
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--mute);
+}
+.rl-badge.always { color: var(--ink); border-color: var(--dim); }
+.rl-badge.topic { color: var(--ink-2); }
+.rl-badge.special { color: var(--ink-2); border-style: dotted; }
+.rl-badge.off { color: var(--dim); }
+.rl-badge.overridden { color: var(--dim); border-style: dotted; }
+.rl-badge.ignored { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
+
+.rl-empty,
+.rl-hint { margin: 0; font-size: 12px; line-height: 1.4; color: var(--mute); }
+.rl-note { margin: 0; font-size: 12px; line-height: 1.4; color: var(--ink-3); }
+.rl-error { margin: 0; font-size: 12px; line-height: 1.4; color: var(--accent); }
+
+/* Edit modal */
+.modal.rl-modal { max-width: 560px; max-height: calc(100vh - 48px); overflow-y: auto; gap: 16px; }
+.rl-modal-title { margin: 0; font-size: 20px; font-weight: 600; color: var(--ink); overflow-wrap: anywhere; }
+.rl-modal-sub { font-family: var(--mono); font-size: 11px; color: var(--dim); }
+
+.rl-field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.rl-field-label { font-size: 13px; color: var(--ink-2); }
+.rl-field .set-input,
+.rl-field .set-textarea { width: 100%; }
+.rl-body { font-family: var(--mono); font-size: 13px; line-height: 1.55; min-height: 200px; }
+.rl-seg { align-self: flex-start; }
+.rl-suggest { align-self: flex-start; height: 28px; padding: 0 10px; font-size: 12px; }
+
+.rl-switch-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  font-size: 14px; color: var(--ink-2);
+}
+
+.rl-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.rl-spacer { flex: 1; min-width: 0; }
+
+/* Narrow settings pane: the buttons share the row width instead of crowding one line. */
+@container rl (max-width: 520px) {
+  .rl-spacer { display: none; }
+  .rl-actions .btn { flex: 1 1 auto; }
+  .rl-group-head { flex-wrap: wrap; }
+}
