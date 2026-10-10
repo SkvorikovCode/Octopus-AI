@@ -16,9 +16,9 @@ type Props = {
 // Same dotted checkbox as PlanTile in Tiles.tsx.
 const TASK_MARK: Record<TodoTask["status"], { stroke: string; check: boolean; dash: string }> = {
   completed: { stroke: "var(--ink)", check: true, dash: "0 3.2" },
-  in_progress: { stroke: "var(--accent)", check: false, dash: "0 3.2" },
+  in_progress: { stroke: "var(--accent-ink)", check: false, dash: "0 3.2" },
   pending: { stroke: "var(--dim)", check: false, dash: "0 3.2" },
-  blocked: { stroke: "var(--accent)", check: false, dash: "1.5 2" },
+  blocked: { stroke: "var(--accent-ink)", check: false, dash: "1.5 2" },
   abandoned: { stroke: "var(--dim)", check: false, dash: "1.5 2" },
 };
 
@@ -30,7 +30,7 @@ function TaskRow({ task }: { task: TodoTask }) {
       <svg width="14" height="14" viewBox="0 0 14 14" fill="none" strokeLinecap="round" aria-hidden="true">
         <rect x="1.5" y="1.5" width="11" height="11" rx="3" stroke={mark.stroke} strokeWidth="1.8" strokeDasharray={mark.dash} />
         {mark.check && <path d="M4.2 7.2l2 2 3.8-4.2" stroke="var(--ink)" strokeWidth="1.6" />}
-        {task.status === "in_progress" && <circle cx="7" cy="7" r="1.8" fill="var(--accent)" />}
+        {task.status === "in_progress" && <circle cx="7" cy="7" r="1.8" fill="var(--accent-ink)" />}
       </svg>
       <span className={task.status === "abandoned" ? "plan-task-struck" : undefined}>{task.content}</span>
     </div>

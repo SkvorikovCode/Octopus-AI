@@ -50,12 +50,12 @@ button.rl-row:hover { background: var(--panel-2); }
 .rl-badge.special { color: var(--ink-2); border-style: dotted; }
 .rl-badge.off { color: var(--dim); }
 .rl-badge.overridden { color: var(--dim); border-style: dotted; }
-.rl-badge.ignored { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
+.rl-badge.ignored { color: var(--accent-ink); border-color: var(--accent-ink); background: var(--accent-soft); }
 
 .rl-empty,
 .rl-hint { margin: 0; font-size: 12px; line-height: 1.4; color: var(--mute); }
 .rl-note { margin: 0; font-size: 12px; line-height: 1.4; color: var(--ink-3); }
-.rl-error { margin: 0; font-size: 12px; line-height: 1.4; color: var(--accent); }
+.rl-error { margin: 0; font-size: 12px; line-height: 1.4; color: var(--accent-ink); }
 
 /* Edit modal */
 .modal.rl-modal { max-width: 560px; max-height: calc(100vh - 48px); overflow-y: auto; gap: 16px; }

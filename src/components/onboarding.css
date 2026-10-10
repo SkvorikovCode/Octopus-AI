@@ -75,7 +75,7 @@
 
 .onb-step[data-warn="true"] {
   border-style: dashed;
-  border-color: var(--accent);
+  border-color: var(--accent-ink);
 }
 
 .onb-step-head {

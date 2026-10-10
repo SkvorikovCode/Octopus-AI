@@ -30,9 +30,9 @@
 }
 .session-row .session-acts .session-act:hover,
 .session-row .session-acts .session-del:hover { color: var(--ink); background: var(--line-2); }
-.session-row .session-acts .session-act.on { color: var(--accent); }
+.session-row .session-acts .session-act.on { color: var(--accent-ink); }
 .session-row .session-acts .session-del.armed {
-  width: auto; padding: 0 6px; border: 1px solid var(--accent); color: var(--accent);
+  width: auto; padding: 0 6px; border: 1px solid var(--accent-ink); color: var(--accent-ink);
 }
 
 /* Archived rows read quieter; they only show when the archive is expanded (or while running). */
@@ -42,7 +42,7 @@
 .session-item-edit { cursor: text; }
 .session-rename {
   flex: 1; min-width: 0; font: inherit; font-size: 14px; color: var(--ink);
-  background: var(--bg); border: 1px solid var(--accent); border-radius: 6px;
+  background: var(--bg); border: 1px solid var(--accent-ink); border-radius: 6px;
   padding: 2px 6px; outline: none;
 }
 

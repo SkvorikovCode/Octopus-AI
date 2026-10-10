@@ -6,7 +6,7 @@
 .mp-banner {
   display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
   padding: 10px 12px; box-sizing: border-box; border-radius: 10px;
-  background: var(--accent-soft); border: 1px solid var(--accent);
+  background: var(--accent-soft); border: 1px solid var(--accent-ink);
   font-size: 13px; line-height: 1.4; color: var(--ink);
 }
 .mp-banner-text { flex: 1; min-width: 0; }
@@ -83,7 +83,7 @@
 .mp-src.own { color: var(--ink); border-color: var(--dim); }
 .mp-src.free { color: var(--ink-2); }
 .mp-src.catalog { color: var(--mute); }
-.mp-src.none { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
+.mp-src.none { color: var(--accent-ink); border-color: var(--accent-ink); background: var(--accent-soft); }
 .mp-src.plan { color: var(--ink-2); border-color: var(--line-3); }
 .mp-row.plan .mp-num { color: var(--dim); }
 .mp-plan-note { margin: 0 0 4px; }
@@ -103,7 +103,7 @@
   background: var(--bg); border: 1px solid var(--line-2); border-radius: 10px;
 }
 .mp-money:focus-within,
-.mp-money.invalid { border-color: var(--accent); }
+.mp-money.invalid { border-color: var(--accent-ink); }
 .mp-money-input {
   flex: 1; min-width: 0; height: 100%; padding: 0 10px 0 12px; box-sizing: border-box;
   background: transparent; border: 0; outline: none; color: var(--ink);
@@ -117,7 +117,7 @@
   font-variant-numeric: tabular-nums;
 }
 .mp-int:focus,
-.mp-int[aria-invalid="true"] { border-color: var(--accent); }
+.mp-int[aria-invalid="true"] { border-color: var(--accent-ink); }
 
 .mp-long-head {
   display: flex; align-items: center; justify-content: space-between; gap: 12px;
@@ -126,7 +126,7 @@
 .mp-long-fields { display: flex; flex-direction: column; gap: 12px; }
 .mp-long-fields .mp-int-field { max-width: 240px; }
 
-.mp-modal-error { margin: 0; font-size: 12px; line-height: 1.4; color: var(--accent); }
+.mp-modal-error { margin: 0; font-size: 12px; line-height: 1.4; color: var(--accent-ink); }
 .mp-modal-actions { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
 .mp-modal-actions .mp-side { display: flex; gap: 8px; flex-wrap: wrap; }
 .mp-modal-actions .mp-main { display: flex; gap: 8px; margin-left: auto; }

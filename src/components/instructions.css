@@ -14,7 +14,7 @@
 .ins-banner {
   display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
   padding: 10px 12px; box-sizing: border-box; border-radius: 10px;
-  background: var(--accent-soft); border: 1px solid var(--accent);
+  background: var(--accent-soft); border: 1px solid var(--accent-ink);
   font-size: 13px; line-height: 1.4; color: var(--ink);
 }
 .ins-banner-text { flex: 1; min-width: 0; overflow-wrap: anywhere; }
@@ -28,7 +28,7 @@
   color: var(--ink); font-family: var(--mono); font-size: 13px; line-height: 1.55;
   outline: none; tab-size: 2;
 }
-.ins-text:focus { border-color: var(--accent); }
+.ins-text:focus { border-color: var(--accent-ink); }
 .ins-text:disabled { opacity: 0.6; }
 .ins-text::placeholder { color: var(--dim); }
 
@@ -47,7 +47,7 @@
 .ins-spacer { flex: 1; min-width: 0; }
 .ins-dirty {
   font-family: var(--mono); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase;
-  color: var(--accent);
+  color: var(--accent-ink);
 }
 
 /* Narrow settings pane: buttons share the row width instead of crowding one line. */

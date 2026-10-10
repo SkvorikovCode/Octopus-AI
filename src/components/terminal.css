@@ -20,7 +20,7 @@
   cursor: pointer;
 }
 
-.term button:focus-visible { outline: 1px solid var(--accent); outline-offset: -1px; }
+.term button:focus-visible { outline: 1px solid var(--accent-ink); outline-offset: -1px; }
 .term button:disabled { opacity: 0.4; cursor: default; }
 
 .term-grip {

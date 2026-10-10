@@ -85,8 +85,8 @@
 }
 
 .fv-root .fv-btn.is-done {
-  color: var(--accent);
-  border-color: var(--accent);
+  color: var(--accent-ink);
+  border-color: var(--accent-ink);
 }
 
 .fv-body {
@@ -160,7 +160,7 @@
 
 .fv-row.hl {
   background: var(--accent-soft);
-  box-shadow: inset 2px 0 0 var(--accent);
+  box-shadow: inset 2px 0 0 var(--accent-ink);
 }
 
 .fv-ln {

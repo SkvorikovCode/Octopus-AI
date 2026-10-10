@@ -167,16 +167,16 @@ function StepMark({ state }: { state: StepState }) {
   if (state === "done") {
     return (
       <svg className="onb-mark onb-mark-done" width="22" height="22" viewBox="0 0 22 22" fill="none" strokeLinecap="round" aria-hidden="true">
-        <circle className="onb-ring" cx="11" cy="11" r="9" stroke="var(--accent)" strokeWidth="2" strokeDasharray="0 3.4" />
-        <path className="onb-check" d="M7.4 11.4l2.4 2.4 4.8-5.2" stroke="var(--accent)" strokeWidth="1.8" strokeLinejoin="round" pathLength="1" />
+        <circle className="onb-ring" cx="11" cy="11" r="9" stroke="var(--accent-ink)" strokeWidth="2" strokeDasharray="0 3.4" />
+        <path className="onb-check" d="M7.4 11.4l2.4 2.4 4.8-5.2" stroke="var(--accent-ink)" strokeWidth="1.8" strokeLinejoin="round" pathLength="1" />
       </svg>
     );
   }
   if (state === "progress") {
     return (
       <svg className="onb-mark" width="22" height="22" viewBox="0 0 22 22" fill="none" strokeLinecap="round" aria-hidden="true">
-        <circle cx="11" cy="11" r="9" stroke="var(--accent)" strokeWidth="2" strokeDasharray="0 3.4" />
-        <circle className="pulse" cx="11" cy="11" r="3.4" fill="var(--accent)" />
+        <circle cx="11" cy="11" r="9" stroke="var(--accent-ink)" strokeWidth="2" strokeDasharray="0 3.4" />
+        <circle className="pulse" cx="11" cy="11" r="3.4" fill="var(--accent-ink)" />
       </svg>
     );
   }

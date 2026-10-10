@@ -30,9 +30,9 @@
 }
 .wt-btn:hover:not(:disabled) { border-color: var(--line-3); color: var(--ink); }
 .wt-btn:disabled { opacity: 0.45; cursor: default; }
-.wt-btn-primary { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
-.wt-btn-primary:hover:not(:disabled) { background: var(--accent-soft); color: var(--accent); }
-.wt-btn.is-armed { border-color: var(--accent); color: var(--accent); }
+.wt-btn-primary { background: var(--accent-soft); border-color: var(--accent-ink); color: var(--accent-ink); }
+.wt-btn-primary:hover:not(:disabled) { background: var(--accent-soft); color: var(--accent-ink); }
+.wt-btn.is-armed { border-color: var(--accent-ink); color: var(--accent-ink); }
 
 .wt-result { display: flex; flex-direction: column; gap: 4px; padding: 6px 14px 0; font-size: 12px; color: var(--ink-3); }
 .wt-result-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
@@ -42,13 +42,13 @@
 }
 .wt-link:hover { color: var(--ink); }
 .wt-error { color: var(--ink-2); }
-.wt-conflict { display: flex; flex-direction: column; gap: 2px; color: var(--accent); }
+.wt-conflict { display: flex; flex-direction: column; gap: 2px; color: var(--accent-ink); }
 .wt-conflict-hint { color: var(--ink-3); }
 
 /* Composer: "Копия" chip, mirrors the "План" chip (accent when on). */
 .composer-bar .cmp-isolated[aria-pressed="true"],
 .composer-bar .cmp-isolated[aria-pressed="true"]:hover:not(:disabled) {
-  border-color: var(--accent); color: var(--accent); background: var(--accent-soft);
+  border-color: var(--accent-ink); color: var(--accent-ink); background: var(--accent-soft);
 }
 .cmp-isolated-icon { flex: none; }
 .cmp-isolated-hint { padding: 0 18px 10px; font-size: 11.5px; color: var(--mute); }

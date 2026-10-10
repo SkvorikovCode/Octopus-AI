@@ -128,11 +128,11 @@
 }
 .set-reset { display: flex; justify-content: flex-start; }
 .set-danger { color: var(--ink-2); }
-.set-danger.armed { border-color: var(--accent); color: var(--accent); }
+.set-danger.armed { border-color: var(--accent-ink); color: var(--accent-ink); }
 
 .set-root button:focus-visible,
 .set-custom:focus-within {
-  outline: 2px solid var(--accent); outline-offset: 2px;
+  outline: 2px solid var(--accent-ink); outline-offset: 2px;
 }
 
 /* Templates ("Мои команды") */
@@ -147,7 +147,7 @@
 .set-tpl-info { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 4px; }
 .set-tpl-head { display: flex; align-items: baseline; gap: 10px; min-width: 0; }
 .set-tpl-name {
-  font-family: var(--mono); font-size: 13px; color: var(--accent);
+  font-family: var(--mono); font-size: 13px; color: var(--accent-ink);
   flex-shrink: 0; white-space: nowrap;
 }
 .set-tpl-title { font-size: 14px; color: var(--ink); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -174,10 +174,10 @@
 .set-input-mono { font-family: var(--mono); font-size: 13px; }
 .set-textarea { padding: 10px 12px; line-height: 1.5; resize: vertical; }
 .set-input:focus,
-.set-textarea:focus { border-color: var(--accent); }
+.set-textarea:focus { border-color: var(--accent-ink); }
 .set-input[aria-invalid="true"],
-.set-textarea[aria-invalid="true"] { border-color: var(--accent); }
-.set-error { margin: 0; font-size: 12px; line-height: 1.4; color: var(--accent); }
+.set-textarea[aria-invalid="true"] { border-color: var(--accent-ink); }
+.set-error { margin: 0; font-size: 12px; line-height: 1.4; color: var(--accent-ink); }
 .set-tpl-form-actions { display: flex; gap: 8px; }
 
 @media (max-width: 560px) {
@@ -204,7 +204,7 @@
 .set-nav-item:hover { background: var(--raise); color: var(--ink); }
 .set-nav-item.current { background: var(--raise); color: var(--ink); }
 .set-nav-n { font-family: var(--mono); font-size: 11px; color: var(--mute); letter-spacing: 0.04em; }
-.set-nav-item.current .set-nav-n { color: var(--accent); }
+.set-nav-item.current .set-nav-n { color: var(--accent-ink); }
 .set-layout > .set-scroll { flex: 1; min-width: 0; }
 .set-pane { flex: 1; min-width: 0; min-height: 0; display: flex; flex-direction: column; }
 .set-pane > * { flex: 1; min-height: 0; }

@@ -65,7 +65,7 @@ function CleanMark() {
   return (
     <svg width="72" height="72" viewBox="0 0 72 72" fill="none" strokeLinecap="round" aria-hidden="true">
       <circle cx="36" cy="36" r="30" stroke="var(--dot)" strokeWidth="4" strokeDasharray="0 6" />
-      <path d="M22 37l9 9 19-20" stroke="var(--accent)" strokeWidth="4" strokeDasharray="0 6" />
+      <path d="M22 37l9 9 19-20" stroke="var(--accent-ink)" strokeWidth="4" strokeDasharray="0 6" />
     </svg>
   );
 }

@@ -163,7 +163,7 @@ function DotBar({ done, running, total }: { done: number; running: number; total
           <circle cx="4.5" cy="6" r="1.8" fill="var(--ink)" />
         </pattern>
         <pattern id={run} width="9" height="12" patternUnits="userSpaceOnUse">
-          <circle cx="4.5" cy="6" r="1.8" fill="var(--accent)" />
+          <circle cx="4.5" cy="6" r="1.8" fill="var(--accent-ink)" />
         </pattern>
       </defs>
       <rect width="100%" height="12" fill={`url(#${base})`} />

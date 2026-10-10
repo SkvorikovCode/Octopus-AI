@@ -696,8 +696,8 @@ export function Composer({
             <span className="pill-btn" title={t("Агент спрашивает перед записью и командами")}>
               {t("Автономия")}
               <span style={{ display: "flex", gap: 3 }} aria-label={t("средняя")}>
-                <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--accent)" }} />
-                <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--accent)" }} />
+                <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--accent-ink)" }} />
+                <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--accent-ink)" }} />
                 <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--dot)" }} />
               </span>
             </span>

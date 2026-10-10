@@ -11,7 +11,7 @@ export function Logo({ size = 30 }: { size?: number }) {
       <circle cx="100" cy="80" r="62" />
       <ellipse cx="100" cy="80" rx="28" ry="62" />
       <path d={TENTACLES_4} />
-      <circle cx="187" cy="63" r="14" fill="var(--accent)" stroke="none" />
+      <circle cx="187" cy="63" r="14" fill="var(--accent-ink)" stroke="none" />
     </svg>
   );
 }
@@ -28,18 +28,18 @@ export function Emblem({ size = 220 }: { size?: number }) {
         <ellipse cx="100" cy="108" rx="55" ry="8" />
         <path d={TENTACLES_8} />
       </g>
-      <circle className="eye" cx="86" cy="76" r="4.5" fill="var(--accent)" />
-      <circle className="eye" cx="114" cy="76" r="4.5" fill="var(--accent)" />
+      <circle className="eye" cx="86" cy="76" r="4.5" fill="var(--accent-ink)" />
+      <circle className="eye" cx="114" cy="76" r="4.5" fill="var(--accent-ink)" />
       <g className="orbit">
-        <ellipse cx="100" cy="80" rx="96" ry="22" transform="rotate(-16 100 80)" stroke="var(--accent)" strokeWidth="3" strokeDasharray="0 9" />
-        <circle cx="189" cy="62" r="5" fill="var(--accent)" />
+        <ellipse cx="100" cy="80" rx="96" ry="22" transform="rotate(-16 100 80)" stroke="var(--accent-ink)" strokeWidth="3" strokeDasharray="0 9" />
+        <circle cx="189" cy="62" r="5" fill="var(--accent-ink)" />
       </g>
     </svg>
   );
 }
 
 export function Face({ mood }: { mood: "idle" | "busy" | "waiting" | "off" }) {
-  const eyes = mood === "off" ? "var(--dim)" : "var(--accent)";
+  const eyes = mood === "off" ? "var(--dim)" : "var(--accent-ink)";
   const mouth = mood === "waiting" ? "M110 62q12 6 24 0" : mood === "busy" ? "M112 60h20" : "M112 60q10 4 20 0";
   return (
     <svg viewBox="0 0 240 110" width="100%" height="104" fill="none" strokeLinecap="round" aria-hidden="true">
@@ -48,7 +48,7 @@ export function Face({ mood }: { mood: "idle" | "busy" | "waiting" | "off" }) {
       <circle className={mood === "off" ? "" : "eye"} cx="134" cy="46" r="3.6" fill={eyes} />
       <path d={mouth} stroke="var(--ink)" strokeWidth="2.6" strokeDasharray="0 5" />
       <path d="M4 102H86l5-8 5 14 5-20 5 26 5-18 5 10 5-6H236" stroke="var(--dim)" strokeWidth="2.4" strokeDasharray="0 5" />
-      {mood === "busy" && <path d="M96 108l5-20 5 26 5-18" stroke="var(--accent)" strokeWidth="2.4" strokeDasharray="0 4" />}
+      {mood === "busy" && <path d="M96 108l5-20 5 26 5-18" stroke="var(--accent-ink)" strokeWidth="2.4" strokeDasharray="0 4" />}
     </svg>
   );
 }
@@ -63,9 +63,9 @@ export function DotRing({ percent, size = 104 }: { percent: number; size?: numbe
     <svg viewBox="0 0 120 120" width={size} height={size} fill="none" strokeLinecap="round" aria-hidden="true">
       <circle cx="60" cy="60" r="48" stroke="var(--dot)" strokeWidth="4" strokeDasharray="0 8" />
       {p >= 99.5 ? (
-        <circle cx="60" cy="60" r="48" stroke="var(--accent)" strokeWidth="4" strokeDasharray="0 8" />
+        <circle cx="60" cy="60" r="48" stroke="var(--accent-ink)" strokeWidth="4" strokeDasharray="0 8" />
       ) : p > 0 ? (
-        <path d={`M60 12A48 48 0 ${large} 1 ${x.toFixed(1)} ${y.toFixed(1)}`} stroke="var(--accent)" strokeWidth="4" strokeDasharray="0 8" />
+        <path d={`M60 12A48 48 0 ${large} 1 ${x.toFixed(1)} ${y.toFixed(1)}`} stroke="var(--accent-ink)" strokeWidth="4" strokeDasharray="0 8" />
       ) : null}
     </svg>
   );
@@ -73,7 +73,7 @@ export function DotRing({ percent, size = 104 }: { percent: number; size?: numbe
 
 export function DotSpinner({ size = 14 }: { size?: number }) {
   return (
-    <svg className="spin" width={size} height={size} viewBox="0 0 14 14" fill="none" stroke="var(--accent)" strokeWidth="2" strokeLinecap="round" strokeDasharray="0 3.6" aria-hidden="true">
+    <svg className="spin" width={size} height={size} viewBox="0 0 14 14" fill="none" stroke="var(--accent-ink)" strokeWidth="2" strokeLinecap="round" strokeDasharray="0 3.6" aria-hidden="true">
       <circle cx="7" cy="7" r="5.5" />
     </svg>
   );
