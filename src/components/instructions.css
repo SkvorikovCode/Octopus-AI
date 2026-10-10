@@ -1,0 +1,58 @@
+/* Instructions tab: general and project instruction files for the agent.
+   Classes are prefixed `ins-`. Shared look comes from settings.css (set-card, set-head, set-h, set-desc)
+   and global .card, .btn, .label, .err-card. Colors are tokens only, so both themes work. */
+
+.ins { container: ins / inline-size; display: flex; flex-direction: column; gap: 14px; }
+
+.ins-reading { margin: 0; font-size: 13px; line-height: 1.5; color: var(--ink-3); overflow-wrap: anywhere; }
+.ins-reading-label { color: var(--mute); }
+.ins-reading-files { font-family: var(--mono); font-size: 12px; color: var(--ink-2); }
+
+.ins-hint { margin: 0; font-size: 13px; line-height: 1.5; color: var(--mute); }
+
+/* Accent banner: the saved notice and the shadowed-files warning (same look as .mp-banner) */
+.ins-banner {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  padding: 10px 12px; box-sizing: border-box; border-radius: 10px;
+  background: var(--accent-soft); border: 1px solid var(--accent);
+  font-size: 13px; line-height: 1.4; color: var(--ink);
+}
+.ins-banner-text { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.ins-banner-btn { height: 30px; padding: 0 12px; font-size: 13px; flex-shrink: 0; }
+
+/* Editor */
+.ins-text {
+  display: block; width: 100%; box-sizing: border-box; min-width: 0;
+  min-height: 200px; resize: vertical;
+  padding: 12px 14px; background: var(--bg); border: 1px solid var(--line-2); border-radius: 10px;
+  color: var(--ink); font-family: var(--mono); font-size: 13px; line-height: 1.55;
+  outline: none; tab-size: 2;
+}
+.ins-text:focus { border-color: var(--accent); }
+.ins-text:disabled { opacity: 0.6; }
+.ins-text::placeholder { color: var(--dim); }
+
+.ins-file { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; min-width: 0; }
+.ins-file-name {
+  font-family: var(--mono); font-size: 12px; color: var(--ink-2);
+  overflow-wrap: anywhere; min-width: 0;
+}
+.ins-new {
+  padding: 0 6px; border: 1px dotted var(--line-3); border-radius: 4px;
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.04em; color: var(--mute);
+  white-space: nowrap;
+}
+
+.ins-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.ins-spacer { flex: 1; min-width: 0; }
+.ins-dirty {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--accent);
+}
+
+/* Narrow settings pane: buttons share the row width instead of crowding one line. */
+@container ins (max-width: 520px) {
+  .ins-spacer { display: none; }
+  .ins-actions .btn { flex: 1 1 auto; }
+  .ins-text { font-size: 12px; }
+}

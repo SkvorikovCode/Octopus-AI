@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { Frame } from "../omp";
-import { describeApproval, initialSession, reduce } from "../session";
+import { contextFilesOf, describeApproval, initialSession, reduce } from "../session";
 import type { Action, Item, SessionState, Step } from "../session";
 
 // Identity translation with {var} interpolation, so assertions compare the Russian source strings.
@@ -763,5 +763,29 @@ describe("immutability", () => {
     expect(s.status).toBe("idle");
     expect(s.items.map((it) => it.kind)).toEqual(["user", "steps"]);
     expect(s.goal).toBe("again");
+  });
+});
+
+describe("contextFilesOf", () => {
+  const prompt = [
+    "You are a coding agent.\n<file path=\"/not/context.md\">x</file>",
+    "<project-context>\n<repo-rules>\n<file path=\"/home/u/.agents/AGENTS.md\">\nA\n</file>\n<file path=\"/p/AGENTS.md\">\nB\n</file>\n</repo-rules>\n</project-context>",
+  ];
+
+  it("reads file paths from the project-context block only", () => {
+    expect(contextFilesOf(prompt)).toEqual(["/home/u/.agents/AGENTS.md", "/p/AGENTS.md"]);
+  });
+
+  it("accepts a plain string and returns [] without a context block", () => {
+    expect(contextFilesOf(prompt.join("\n"))).toEqual(["/home/u/.agents/AGENTS.md", "/p/AGENTS.md"]);
+    expect(contextFilesOf("no context here")).toEqual([]);
+    expect(contextFilesOf(undefined)).toEqual([]);
+  });
+
+  it("is stored on state and kept when get_state has no prompt", () => {
+    const s1 = reduce(initialSession, { type: "state", data: { systemPrompt: prompt } });
+    expect(s1.contextFiles).toEqual(["/home/u/.agents/AGENTS.md", "/p/AGENTS.md"]);
+    const s2 = reduce(s1, { type: "state", data: {} });
+    expect(s2.contextFiles).toBe(s1.contextFiles);
   });
 });

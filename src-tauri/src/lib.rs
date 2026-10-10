@@ -8,6 +8,7 @@ mod sessions;
 mod checkpoints;
 mod files;
 mod gitops;
+mod instructions;
 mod stats;
 mod workspace;
 mod worktrees;
@@ -65,6 +66,9 @@ pub fn run() {
             checkpoints::checkpoint_create,
             checkpoints::checkpoint_changes,
             checkpoints::checkpoint_restore,
+            instructions::instructions_get,
+            instructions::instructions_save,
+            instructions::instructions_read_claude,
         ])
         .on_window_event(|window, event| {
             if let tauri::WindowEvent::Destroyed = event {

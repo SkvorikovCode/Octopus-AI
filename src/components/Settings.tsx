@@ -19,6 +19,7 @@ import { parseLimit, todaySpend } from "../lib/budget";
 import { formatCost } from "../lib/stats";
 import { t } from "../lib/i18n";
 import { ModelPrices, type PriceModel } from "./ModelPrices";
+import { InstructionsSection } from "./Instructions";
 import "./settings.css";
 import "./budget.css";
 
@@ -36,7 +37,7 @@ const HOTKEYS: { keys: string[]; text: string }[] = [
 ];
 
 /** Settings are split into tabs; usage and connections are full screens embedded here. */
-export type SettingsTab = "general" | "chat" | "models" | "budget" | "usage" | "connections" | "commands" | "hotkeys" | "about";
+export type SettingsTab = "general" | "chat" | "instructions" | "models" | "budget" | "usage" | "connections" | "commands" | "hotkeys" | "about";
 
 export type SettingsScreenProps = {
   tab: SettingsTab;
@@ -49,6 +50,14 @@ export type SettingsScreenProps = {
   /** Effective model prices from the running agent. */
   models?: PriceModel[];
   onRestartAgent?: () => void;
+  /** Open project folder and the user's home folder, for the Инструкции tab. */
+  project?: string;
+  home?: string;
+  /** Instruction files the running agent reads (absolute paths). */
+  contextFiles?: string[];
+  agentRunning?: boolean;
+  onNewSession?: () => void;
+  onGenerateInstructions?: (rel: string) => void;
 };
 
 export function SettingsScreen({
@@ -61,6 +70,12 @@ export function SettingsScreen({
   engineInfo,
   models,
   onRestartAgent,
+  project,
+  home,
+  contextFiles,
+  agentRunning,
+  onNewSession,
+  onGenerateInstructions,
 }: SettingsScreenProps): ReactElement {
   // The budget section lives in the models tab now; a "budget" request opens models.
   const tab: SettingsTab = requestedTab === "budget" ? "models" : requestedTab;
@@ -80,6 +95,7 @@ export function SettingsScreen({
   const items: { id: SettingsTab; label: string }[] = [
     { id: "general", label: t("Общие") },
     { id: "chat", label: t("Чат") },
+    { id: "instructions", label: t("Инструкции") },
     { id: "models", label: t("Модели") },
     { id: "usage", label: t("Статистика") },
     { id: "connections", label: t("Подключения") },
@@ -241,6 +257,16 @@ export function SettingsScreen({
           </Section>
 
                 </>
+              )}
+              {tab === "instructions" && (
+                <InstructionsSection
+                  project={project}
+                  home={home}
+                  contextFiles={contextFiles}
+                  agentRunning={agentRunning ?? false}
+                  onNewSession={onNewSession}
+                  onGenerate={onGenerateInstructions}
+                />
               )}
               {tab === "models" && (
                 <>

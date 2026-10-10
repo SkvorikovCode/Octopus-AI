@@ -26,6 +26,7 @@ import { Onboarding } from "./components/Onboarding";
 import { isOnboarded, markOnboarded } from "./lib/onboarding";
 import { homeDir } from "@tauri-apps/api/path";
 import { PlanCard } from "./components/PlanCard";
+import { displayPath } from "./lib/instructions";
 import { approvePrompt, planPrompt, revisePrompt } from "./lib/plan";
 import { DEMO_PROJECT, DEMO_SESSIONS, DemoClient } from "./lib/demo";
 import { OmpClient, type Frame } from "./lib/omp";
@@ -86,6 +87,10 @@ export default function App() {
   const [sessions, setSessions] = useState<SessionMeta[]>([]);
   const [recentProjects, setRecentProjects] = useState<RecentProject[]>(getRecentProjects);
   const [ompPath, setOmpPath] = useState<string | null | undefined>(undefined);
+  const [home, setHome] = useState<string | undefined>(DEMO ? "/Users/demo" : undefined);
+  useEffect(() => {
+    if (!DEMO) homeDir().then(setHome).catch(() => {});
+  }, []);
   const [debugOpen, setDebugOpen] = useState(false);
   const [draft, setDraft] = useState("");
   /** Models the agent offers, with the price it will charge (own, catalog or zero). */
@@ -366,6 +371,7 @@ export default function App() {
     // A new task next to a running agent of this project defaults to its own copy.
     if (!sessionPath && changes?.isRepo) setIsolated(true);
     startRuntime(rt, copy?.path ?? project);
+    return rt;
   };
 
   // (Re)start the agent whenever the project changes and the engine is installed.
@@ -594,15 +600,39 @@ export default function App() {
     const r = rtRef.current;
     if (!r) return;
     // While this agent works, the new session gets an agent of its own.
-    if (r.busy) return spawn();
-    r.client.request({ type: "new_session" }).then(() => {
+    if (r.busy) {
+      spawn();
+      return;
+    }
+    return r.client.request({ type: "new_session" }).then(() => {
       r.dispatch({ type: "reset" });
       r.swarmDispatch({ type: "reset" });
       r.dispatch({ type: "status", status: "idle" });
       setView("session");
       refresh(r);
       refreshSessions();
-    }).catch(() => {});
+      return r;
+    }).catch(() => undefined);
+  };
+
+  // «Составить автоматически»: a fresh session where the agent writes the project's instructions.
+  const generateInstructions = (rel: string) => {
+    const r = rtRef.current;
+    if (!r || !project) return;
+    // The engine's own file is named only by role, never by path.
+    const file = displayPath(rel, {}) === rel ? rel : t("файл инструкций проекта, который ты уже читаешь");
+    const text = t(
+      "Изучи этот проект и напиши инструкции для агента в {file}: как устроен проект, как его запускать и проверять, соглашения по коду. Пиши кратко и только то, что не видно из кода сразу. Если в файле уже есть правила, сохрани их и дополни.",
+      { file },
+    );
+    setView("session");
+    if (r.busy) {
+      const rt = spawn();
+      if (rt) rt.pendingPrompt = { type: "prompt", message: text };
+      setIsolated(false);
+      return;
+    }
+    newSession()?.then((fresh) => fresh && send(text));
   };
 
   const openSession = async (meta: SessionMeta) => {
@@ -914,6 +944,12 @@ export default function App() {
           start(project);
         }}
         onBack={() => setView("session")}
+        project={workCwd}
+        home={home}
+        contextFiles={s.contextFiles}
+        agentRunning={s.status !== "offline"}
+        onNewSession={() => newSession()}
+        onGenerateInstructions={generateInstructions}
         onOpenProviders={() => setProvidersOpen(true)}
         engineInfo={{ model: s.model, project, status: s.status === "idle" ? t("агент готов") : s.status === "offline" ? t("агент не запущен") : t("агент работает") }}
         renderUsage={() => (

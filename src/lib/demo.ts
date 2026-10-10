@@ -57,6 +57,7 @@ export class DemoClient {
           sessionId: this.sessionId,
           model: { provider: "anthropic", id: "claude-opus-5-5", name: "Claude Opus 5.5 (демо)", reasoning: true, thinking: { efforts: ["low", "medium", "high", "xhigh", "max"] } },
           thinkingLevel: "medium",
+          systemPrompt: ["Demo agent.", `<project-context>\n<file path="${DEMO_PROJECT}/.claude/CLAUDE.md">\n…\n</file>\n</project-context>`],
           todoPhases: this.tokens > 0 ? [{ name: "Оплата", tasks: [
             { content: "Разобраться в структуре проекта", status: "completed" },
             { content: "Страница тарифов", status: this.tokens > 60000 ? "completed" : "in_progress" },

@@ -65,6 +65,8 @@ export type SessionState = {
   /** Effort levels the current model supports (empty = no reasoning control). */
   thinkingLevels: string[];
   context?: { tokens: number; window: number; percent: number };
+  /** Instruction files the agent loaded into its prompt (absolute paths), from get_state. */
+  contextFiles?: string[];
   stats?: { tokens: number; cost: number; tools: number };
   turnSteps: number;
   /** Current/last turn: from the user's prompt until the terminal agent_end. */
@@ -136,6 +138,7 @@ function reduceInner(s: SessionState, a: Action): SessionState {
         model: d.model?.name ?? d.model?.id ?? s.model,
         modelRef: d.model?.id ? { provider: d.model.provider, id: d.model.id, name: d.model.name } : s.modelRef,
         context: cu ? { tokens: cu.tokens ?? 0, window: cu.contextWindow ?? 0, percent: cu.percent ?? 0 } : s.context,
+        contextFiles: d.systemPrompt !== undefined ? contextFilesOf(d.systemPrompt) : s.contextFiles,
       };
     }
     case "stats": {
@@ -317,6 +320,17 @@ function onUiRequest(s: SessionState, f: Frame): SessionState {
     default:
       return s;
   }
+}
+
+/** Paths of the instruction files inside the prompt's project-context block. */
+export function contextFilesOf(systemPrompt: unknown): string[] {
+  const text = Array.isArray(systemPrompt)
+    ? systemPrompt.map((b) => (typeof b === "string" ? b : typeof b?.text === "string" ? b.text : "")).join("\n")
+    : typeof systemPrompt === "string"
+      ? systemPrompt
+      : "";
+  const block = /<project-context>([\s\S]*?)<\/project-context>/.exec(text)?.[1] ?? "";
+  return [...new Set([...block.matchAll(/<file path="([^"]+)">/g)].map((m) => m[1]))];
 }
 
 function patchStep(s: SessionState, id: string, fn: (st: Step) => Step): SessionState {
