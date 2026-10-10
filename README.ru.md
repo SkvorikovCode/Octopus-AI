@@ -23,7 +23,7 @@
 > и ломающие изменения. Issues и обратная связь очень приветствуются.
 
 <p align="center">
-  <img src="docs/assets/screenshot.png" alt="Главное окно Octopus AI: чат, плитки агента, счётчик контекста" width="100%">
+  <img src="docs/assets/screenshot.ru.png" alt="Главное окно Octopus AI: чат, плитки агента, счётчик контекста" width="100%">
 </p>
 
 ## Что умеет
