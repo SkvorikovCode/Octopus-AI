@@ -11,7 +11,7 @@
 </p>
 
 <p align="center">
-  <b>English</b> · <a href="README.ru.md">Русский</a>
+  <b>English</b> · <a href="README.ru.md">Русский</a> · <a href="https://skvorikovcode.github.io/Octopus-AI/">Website</a>
 </p>
 
 # Octopus AI
