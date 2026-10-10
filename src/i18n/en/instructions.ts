@@ -32,6 +32,13 @@ const en: Record<string, string> = {
   "файл инструкций проекта, который ты уже читаешь": "the project instructions file you already read",
   "Изучи этот проект и напиши инструкции для агента в {file}: как устроен проект, как его запускать и проверять, соглашения по коду. Пиши кратко и только то, что не видно из кода сразу. Если в файле уже есть правила, сохрани их и дополни.":
     "Study this project and write agent instructions into {file}: how the project is structured, how to run and verify it, code conventions. Be brief and include only what isn't obvious from the code. If the file already has rules, keep them and extend.",
+  "Инструкции: не найден $HOME": "Instructions: home folder not found",
+  "Инструкции: неизвестная область": "Instructions: unknown scope",
+  "Инструкции: неизвестный файл": "Instructions: unknown file",
+  "Инструкции: папка проекта не найдена": "Instructions: project folder not found",
+  "Инструкции: файл Claude не найден": "Instructions: Claude Code instructions file not found",
+  "Инструкции: файл не в кодировке UTF-8": "Instructions: the file is not UTF-8",
+  "Инструкции: файл слишком большой": "Instructions: the file is too large",
 };
 
 export default en;
