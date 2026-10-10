@@ -1,8 +1,11 @@
 [package]
 name = "octopus-ai"
 version = "0.1.0"
-description = "A Tauri App"
-authors = ["you"]
+description = "Octopus AI: a desktop app for working with coding agents"
+license = "Apache-2.0"
+repository = "https://github.com/SkvorikovCode/Octopus-AI"
+homepage = "https://github.com/SkvorikovCode/Octopus-AI"
+authors = ["Octopus AI contributors"]
 edition = "2024"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html

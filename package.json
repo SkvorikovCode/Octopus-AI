@@ -2,6 +2,25 @@
   "name": "octopus-ai",
   "private": true,
   "version": "0.1.0",
+  "description": "A desktop app for working with coding agents: parallel agents in isolated git worktrees, your own keys.",
+  "license": "Apache-2.0",
+  "author": "Octopus AI contributors",
+  "homepage": "https://github.com/SkvorikovCode/Octopus-AI#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SkvorikovCode/Octopus-AI.git"
+  },
+  "bugs": {
+    "url": "https://github.com/SkvorikovCode/Octopus-AI/issues"
+  },
+  "keywords": [
+    "coding-agents",
+    "ai",
+    "tauri",
+    "desktop",
+    "git-worktree",
+    "agent-swarm"
+  ],
   "type": "module",
   "scripts": {
     "dev": "vite",
