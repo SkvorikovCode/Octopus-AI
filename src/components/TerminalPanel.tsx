@@ -76,18 +76,21 @@ function recentText(term: Terminal | null, lines: number): string {
  * One terminal: an xterm view and its PTY. Unmounting closes the PTY.
  * `cwd` is read once, at mount: later changes only affect new tabs.
  */
-function TerminalTab({
+export function TerminalTab({
   tabKey,
   cwd,
   visible,
   onExit,
   registry,
+  spawn,
 }: {
   tabKey: number;
   cwd: string;
   visible: boolean;
-  onExit: () => void;
-  registry: Map<number, TabHandle>;
+  onExit: (code: number | null) => void;
+  registry?: Map<number, TabHandle>;
+  /** Starts something other than the login shell in `cwd`; resolves with the terminal id. */
+  spawn?: (cols: number, rows: number) => Promise<number>;
 }) {
   const hostRef = useRef<HTMLDivElement>(null);
   const termRef = useRef<Terminal | null>(null);
@@ -97,6 +100,7 @@ function TerminalTab({
   });
 
   useEffect(() => {
+    if (!registry) return;
     registry.set(tabKey, {
       getSelection: () => (termRef.current?.hasSelection() ? termRef.current.getSelection() : ""),
       getRecentText: (lines) => recentText(termRef.current, lines),
@@ -166,11 +170,11 @@ function TerminalTab({
     const offData = onPtyData(({ id, data }) => {
       if (id === ptyId) term.write(data);
     });
-    const offExit = onPtyExit(({ id }) => {
+    const offExit = onPtyExit(({ id, code }) => {
       if (id !== ptyId || exited) return;
       exited = true;
       term.write(`\r\n\x1b[2m${t("[процесс завершён]")}\x1b[0m\r\n`);
-      exitRef.current();
+      exitRef.current(code);
     });
 
     const applyTheme = () => {
@@ -186,7 +190,7 @@ function TerminalTab({
     safeFit();
     void document.fonts?.ready.then(safeFit);
 
-    openPty(cwd, term.cols, term.rows).then(
+    (spawn ?? ((cols: number, rows: number) => openPty(cwd, cols, rows)))(term.cols, term.rows).then(
       (id) => {
         if (disposed) {
           closePty(id).catch(() => {});
@@ -200,7 +204,7 @@ function TerminalTab({
         if (disposed) return;
         exited = true;
         term.write(`\r\n\x1b[31m${tErr(e)}\x1b[0m\r\n`);
-        exitRef.current();
+        exitRef.current(null);
       },
     );
 

@@ -31,6 +31,8 @@ export type SessionStat = {
   requests: number;
   /** Last activity, ms since epoch. */
   lastAt: number;
+  /** Cost split by provider id. */
+  costByProvider?: Record<string, number>;
 };
 
 export type UsageStats = {

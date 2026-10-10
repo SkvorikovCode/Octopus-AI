@@ -7,7 +7,7 @@
 use std::collections::HashMap;
 use std::env;
 use std::io::{ErrorKind, Read, Write};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicU32, Ordering};
 use std::sync::{Arc, Mutex};
 use std::thread;
@@ -205,6 +205,31 @@ fn login_shell_command(cwd: &Path) -> CommandBuilder {
     cmd
 }
 
+/// Provider ids become a command-line argument, so accept only plain names:
+/// no leading dash (no flags), no separators, no spaces.
+fn valid_login_provider(id: &str) -> bool {
+    let mut chars = id.chars();
+    let Some(first) = chars.next() else {
+        return false;
+    };
+    id.len() <= 64
+        && (first.is_ascii_lowercase() || first.is_ascii_digit())
+        && chars.all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '-' || c == '.')
+}
+
+/// `omp login <provider>` in the home directory, with the same terminal environment.
+fn engine_login_command(bin: &Path, provider: &str, home: &Path) -> CommandBuilder {
+    let mut cmd = CommandBuilder::new(bin);
+    cmd.arg("login");
+    cmd.arg(provider);
+    cmd.cwd(home);
+    cmd.env("TERM", "xterm-256color");
+    cmd.env("COLORTERM", "truecolor");
+    cmd.env("LANG", lang_value(env::var("LANG").ok()));
+    cmd.env("PATH", crate::omp::shell_path());
+    cmd
+}
+
 #[tauri::command]
 pub fn pty_open(
     app: AppHandle,
@@ -219,6 +244,30 @@ pub fn pty_open(
     }
     let id = state.next_id.fetch_add(1, Ordering::Relaxed) + 1;
     let session = spawn(id, login_shell_command(dir), pty_size(cols, rows), Arc::new(app))?;
+    state.sessions.lock().unwrap().insert(id, session);
+    Ok(id)
+}
+
+/// Runs the engine's login flow for `provider` in a new terminal.
+#[tauri::command]
+pub fn pty_open_login(
+    app: AppHandle,
+    state: State<'_, PtyState>,
+    provider: String,
+    cols: u16,
+    rows: u16,
+) -> Result<u32, String> {
+    if !valid_login_provider(&provider) {
+        return Err("Неизвестный провайдер".into());
+    }
+    let bin = crate::omp::locate_omp().ok_or("Движок агента не найден")?;
+    let home = PathBuf::from(crate::omp::home());
+    if !home.is_dir() {
+        return Err("Домашняя папка не найдена".into());
+    }
+    let id = state.next_id.fetch_add(1, Ordering::Relaxed) + 1;
+    let cmd = engine_login_command(&bin, &provider, &home);
+    let session = spawn(id, cmd, pty_size(cols, rows), Arc::new(app))?;
     state.sessions.lock().unwrap().insert(id, session);
     Ok(id)
 }
@@ -383,6 +432,22 @@ mod tests {
         assert_eq!(shell_path(None), "/bin/zsh");
         assert_eq!(shell_path(Some("  ".into())), "/bin/zsh");
         assert_eq!(shell_path(Some("/bin/bash".into())), "/bin/bash");
+    }
+
+    #[test]
+    fn login_provider_accepts_plain_names() {
+        let longest = "a".repeat(64);
+        for id in ["anthropic", "openai-codex", "llama.cpp", "github-copilot", "0x", longest.as_str()] {
+            assert!(valid_login_provider(id), "{id:?} should be accepted");
+        }
+    }
+
+    #[test]
+    fn login_provider_rejects_flags_paths_and_bad_chars() {
+        let long = "a".repeat(65);
+        for id in ["", "-x", "--help", "Anthropic", "a b", "a/b", long.as_str()] {
+            assert!(!valid_login_provider(id), "{id:?} should be rejected");
+        }
     }
 
     #[test]

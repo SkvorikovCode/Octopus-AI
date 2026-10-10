@@ -8,8 +8,8 @@ vi.mock("../stats", () => ({
   loadUsage: vi.fn(),
 }));
 
-import { budgetState, MAX_LIMIT, parseLimit, todaySpend } from "../budget";
-import { loadUsage } from "../stats";
+import { budgetState, MAX_LIMIT, paidSpend, parseLimit, setFlatRateProviders, spendToday, todaySpend } from "../budget";
+import { loadUsage, type UsageStats } from "../stats";
 
 const DAY_KEY = "octopus.budget.overDay";
 const SESSION_KEY = "octopus.budget.overSessions";
@@ -281,5 +281,64 @@ describe("continue-anyway overrides", () => {
     const fresh = await reload();
     expect(fresh.isOverAllowed("day")).toBe(false);
     expect(fresh.isOverAllowed("session", "s1")).toBe(false);
+  });
+});
+
+describe("paidSpend", () => {
+  const usage: UsageStats = {
+    days: [],
+    models: [
+      { model: "openai-codex/gpt-5.6-terra", tokens: 1, input: 1, output: 0, cost: 3, requests: 1 },
+      { model: "wikivibe/gpt-6-luna", tokens: 1, input: 1, output: 0, cost: 1.5, requests: 1 },
+      { model: "gpt-6-luna", tokens: 1, input: 1, output: 0, cost: 0.5, requests: 1 },
+    ],
+    sessions: [
+      {
+        path: "/s1.jsonl",
+        title: "",
+        cwd: "",
+        tokens: 1,
+        cost: 4,
+        requests: 2,
+        lastAt: 0,
+        costByProvider: { "openai-codex": 3, wikivibe: 1 },
+      },
+      {
+        path: "/s2.jsonl",
+        title: "",
+        cwd: "",
+        tokens: 1,
+        cost: 1,
+        requests: 1,
+        lastAt: 0,
+        costByProvider: { wikivibe: 1 },
+      },
+      { path: "/s3.jsonl", title: "", cwd: "", tokens: 1, cost: 0.5, requests: 1, lastAt: 0 },
+    ],
+    totalTokens: 3,
+    totalCost: 5,
+    totalRequests: 3,
+    sessionCount: 3,
+  };
+
+  it("leaves flat-rate subscription requests out of the day spend", () => {
+    const spend = paidSpend(usage, new Set(["openai-codex"]));
+    expect(spend.day).toBeCloseTo(2);
+    expect(spend.subscriptionBySession).toEqual({ "/s1.jsonl": 3 });
+  });
+
+  it("counts everything without subscriptions", () => {
+    expect(paidSpend(usage, new Set())).toEqual({ day: 5, subscriptionBySession: {} });
+  });
+
+  it("uses the remembered providers by default", async () => {
+    vi.mocked(loadUsage).mockResolvedValue(usage);
+    setFlatRateProviders(new Set(["openai-codex"]));
+    try {
+      expect((await spendToday()).day).toBeCloseTo(2);
+      expect(await todaySpend()).toBeCloseTo(2);
+    } finally {
+      setFlatRateProviders(new Set());
+    }
   });
 });
