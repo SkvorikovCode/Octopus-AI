@@ -48,6 +48,8 @@ jobs:
         with:
           workspaces: src-tauri
       - run: npm ci
+      - name: Fetch the agent engine (pinned in engine.lock, checksum verified)
+        run: scripts/fetch-engine.sh
 
       - uses: tauri-apps/tauri-action@v0
         env:
@@ -58,13 +60,13 @@ jobs:
           releaseDraft: true
           # Everything before 1.0 is a preview.
           prerelease: ${{ startsWith(github.ref_name, 'v0.') }}
-          args: --target aarch64-apple-darwin
+          args: --target aarch64-apple-darwin --config src-tauri/tauri.release.conf.json
           releaseBody: |
             **Preview build for Apple Silicon Macs (macOS 11+).** Not signed or notarized yet.
+            The agent engine is bundled, so there is nothing else to install.
 
             ### Install
-            1. Install the agent engine: `brew install omp`
-            2. Download the `.dmg` below and drag Octopus into Applications.
-            3. macOS will say the app cannot be opened because the developer cannot be verified. Right-click Octopus, choose **Open**, then **Open** again. Or run `xattr -dr com.apple.quarantine /Applications/Octopus.app`.
+            1. Download the `.dmg` below and drag Octopus into Applications.
+            2. macOS will say the app cannot be opened because the developer cannot be verified. Right-click Octopus, choose **Open**, then **Open** again. Or run `xattr -dr com.apple.quarantine /Applications/Octopus.app`.
 
             On first launch the app asks for a provider key. Found a problem? [Open an issue](https://github.com/SkvorikovCode/Octopus-AI/issues/new/choose).

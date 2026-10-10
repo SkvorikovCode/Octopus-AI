@@ -4,6 +4,9 @@ Releases are cut from a **version tag**, never from ordinary commits. Pushing to
 CI checks; the `Release` workflow starts when a tag like `v0.1.0` is pushed, builds the app, and
 attaches it to a **draft** GitHub Release. Nothing is public until a maintainer publishes the draft.
 
+Release builds bundle the agent engine (oh-my-pi) so the app works out of the box. The pinned version
+and checksum live in `engine.lock`; the workflow downloads it with `scripts/fetch-engine.sh`.
+
 Current targets: macOS on Apple Silicon, unsigned (marked as a preview, with install notes in the
 release body). Everything before 1.0 is published as a pre-release.
 
@@ -27,6 +30,22 @@ release body). Everything before 1.0 is published as a pre-release.
 
 A broken tag is fixed by deleting the draft and the tag (`git push --delete origin v0.1.0`),
 correcting `main`, and tagging again.
+
+## Updating the bundled engine
+
+1. Pick the new release at https://github.com/can1357/oh-my-pi/releases and read its notes.
+2. Put the new version and the SHA-256 of `omp-darwin-arm64` (from that release's `SHA256SUMS.txt`) in
+   `engine.lock`.
+3. Run `scripts/fetch-engine.sh` locally (it verifies the checksum), then try the app against it with
+   `OMP_BIN=src-tauri/binaries/omp-aarch64-apple-darwin npm run tauri dev`.
+4. Ship it in a normal PR; the next release picks it up.
+
+## Building a release locally
+
+```sh
+scripts/fetch-engine.sh
+npm run tauri build -- --target aarch64-apple-darwin --config src-tauri/tauri.release.conf.json
+```
 
 ## Not done yet
 
