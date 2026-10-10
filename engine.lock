@@ -1,0 +1,6 @@
+# The agent engine (oh-my-pi) that release builds bundle. Bump both values together:
+# the version, and the SHA-256 of the omp-darwin-arm64 asset of that release
+# (listed in SHA256SUMS.txt on the release page).
+ENGINE_REPO=can1357/oh-my-pi
+ENGINE_VERSION=18.8.9
+ENGINE_SHA256_DARWIN_ARM64=1d084cfbb9587fa1ff76fa77f06ee8680b6a70f92cd207f4a7942e2bd45ae665
