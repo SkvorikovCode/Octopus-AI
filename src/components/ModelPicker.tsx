@@ -74,25 +74,25 @@ export function ModelPicker({ models, current, disabled, onSelect, onAddProvider
   const searchable = models.length > SEARCH_THRESHOLD;
 
   return (
-    <div className="mp-wrap" ref={wrapRef}>
+    <div className="mpk-wrap" ref={wrapRef}>
       <button
         ref={chipRef}
         type="button"
-        className="mp-chip"
+        className="mpk-chip"
         disabled={disabled}
         aria-haspopup="listbox"
         aria-expanded={showing}
         onClick={() => (showing ? close() : setOpen(true))}
       >
-        <span className="mp-chip-text">{chipLabel}</span>
+        <span className="mpk-chip-text">{chipLabel}</span>
         <Icon name="chevron-down" size={12} />
       </button>
 
       {showing && (
-        <div className="mp-pop">
+        <div className="mpk-pop">
           {searchable && (
             <input
-              className="mp-search"
+              className="mpk-search"
               type="search"
               placeholder={t("Поиск моделей")}
               aria-label={t("Поиск моделей")}
@@ -103,14 +103,14 @@ export function ModelPicker({ models, current, disabled, onSelect, onAddProvider
           )}
 
           {models.length === 0 ? (
-            <div className="mp-empty">{t("Моделей нет — добавьте провайдера")}</div>
+            <div className="mpk-empty">{t("Моделей нет — добавьте провайдера")}</div>
           ) : groups.length === 0 ? (
-            <div className="mp-empty">{t("Ничего не найдено")}</div>
+            <div className="mpk-empty">{t("Ничего не найдено")}</div>
           ) : (
-            <div className="mp-list" role="listbox" aria-label={t("Модели")}>
+            <div className="mpk-list" role="listbox" aria-label={t("Модели")}>
               {groups.map(([provider, list]) => (
-                <div className="mp-group" key={provider} role="presentation">
-                  <div className="label mp-group-head">{provider}</div>
+                <div className="mpk-group" key={provider} role="presentation">
+                  <div className="label mpk-group-head">{provider}</div>
                   {list.map((m) => {
                     const isCurrent = !!current && current.provider === m.provider && current.id === m.id;
                     const showId = !!m.name && m.name !== m.id;
@@ -120,16 +120,16 @@ export function ModelPicker({ models, current, disabled, onSelect, onAddProvider
                         type="button"
                         role="option"
                         aria-selected={isCurrent}
-                        className={`mp-row${isCurrent ? " is-current" : ""}`}
+                        className={`mpk-row${isCurrent ? " is-current" : ""}`}
                         onClick={() => choose(m)}
                       >
-                        {isCurrent && <span className="mp-dot" aria-hidden="true" />}
-                        <span className="mp-row-text">
-                          <span className="mp-row-name">{m.name || m.id}</span>
-                          {showId && <span className="mp-row-id">{m.id}</span>}
+                        {isCurrent && <span className="mpk-dot" aria-hidden="true" />}
+                        <span className="mpk-row-text">
+                          <span className="mpk-row-name">{m.name || m.id}</span>
+                          {showId && <span className="mpk-row-id">{m.id}</span>}
                         </span>
                         {isCurrent && (
-                          <span className="mp-check">
+                          <span className="mpk-check">
                             <Icon name="check" size={14} />
                           </span>
                         )}
@@ -141,10 +141,10 @@ export function ModelPicker({ models, current, disabled, onSelect, onAddProvider
             </div>
           )}
 
-          <div className="mp-foot">
+          <div className="mpk-foot">
             <button
               type="button"
-              className="mp-add"
+              className="mpk-add"
               onClick={() => {
                 close();
                 onAddProvider();
