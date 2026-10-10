@@ -30,6 +30,10 @@ from somebody else's subscription.
 > **Status: early.** It works and it is moving fast, but expect rough edges and
 > breaking changes before 1.0. Issues and feedback are very welcome.
 
+<p align="center">
+  <img src="docs/assets/screenshot.png" alt="Octopus AI main window: chat, agent tiles, context meter" width="100%">
+</p>
+
 ## What it does
 
 - **Chat with an agent** in your project folder, with tool steps collapsed by
