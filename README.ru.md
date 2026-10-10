@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <a href="README.md">English</a> · <b>Русский</b>
+  <a href="README.md">English</a> · <b>Русский</b> · <a href="https://skvorikovcode.github.io/Octopus-AI/ru/">Сайт</a>
 </p>
 
 # Octopus AI
@@ -23,7 +23,7 @@
 > и ломающие изменения. Issues и обратная связь очень приветствуются.
 
 <p align="center">
-  <img src="docs/assets/screenshot.png" alt="Главное окно Octopus AI: чат, плитки агента, счётчик контекста" width="100%">
+  <img src="docs/assets/screenshot.ru.png" alt="Главное окно Octopus AI: чат, плитки агента, счётчик контекста" width="100%">
 </p>
 
 ## Что умеет
@@ -61,7 +61,9 @@ npm install
 npm run tauri dev
 ```
 
-Если движок ещё не настроен, при первом запуске приложение попросит ключ провайдера.
+В релизные сборки движок уже встроен; при сборке из исходников используется
+установленный у вас. Если провайдер ещё не настроен, при первом запуске
+приложение попросит ключ.
 
 ```sh
 npm test                                  # юнит-тесты фронтенда

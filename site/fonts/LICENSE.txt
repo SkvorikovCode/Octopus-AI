@@ -1,0 +1,8 @@
+Doto, Onest and JetBrains Mono are licensed under the SIL Open Font License, Version 1.1
+(https://openfontlicense.org).
+
+Doto         Copyright 2024 The Doto Project Authors (https://github.com/oliverlalan/Doto)
+Onest        Copyright 2021 The Onest Project Authors (https://github.com/simpals/onest)
+JetBrains Mono  Copyright 2020 The JetBrains Mono Project Authors (https://github.com/JetBrains/JetBrainsMono)
+
+Served here as the variable woff2 files from the @fontsource-variable packages.

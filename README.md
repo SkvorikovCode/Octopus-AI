@@ -11,7 +11,7 @@
 </p>
 
 <p align="center">
-  <b>English</b> · <a href="README.ru.md">Русский</a>
+  <b>English</b> · <a href="README.ru.md">Русский</a> · <a href="https://skvorikovcode.github.io/Octopus-AI/">Website</a>
 </p>
 
 # Octopus AI
@@ -73,7 +73,8 @@ npm install
 npm run tauri dev
 ```
 
-If the engine is not configured yet, the app asks for a provider key on first
+Release builds already include the engine; building from source uses the one you
+installed. If no provider is configured yet, the app asks for a key on first
 launch.
 
 ```sh
