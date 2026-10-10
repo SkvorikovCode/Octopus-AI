@@ -119,6 +119,20 @@ export async function openPty(cwd: string, cols: number, rows: number): Promise<
   return id;
 }
 
+/** Runs the agent's sign-in for `provider` in a terminal; resolves with the terminal id. */
+export async function openLoginPty(provider: string, cols: number, rows: number): Promise<number> {
+  if (!isTauri()) {
+    const id = ++demoSeq;
+    claim(id);
+    setTimeout(() => dispatch({ kind: "data", id, data: "GitHub Enterprise URL/domain (blank for github.com): " }), 40);
+    return id;
+  }
+  await ensureBus();
+  const id = await invoke<number>("pty_open_login", { provider, cols, rows });
+  claim(id);
+  return id;
+}
+
 export async function writePty(id: number, data: string): Promise<void> {
   if (!isTauri()) {
     demoWrite(id, data);

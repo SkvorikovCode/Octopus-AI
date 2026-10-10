@@ -57,6 +57,7 @@
 .prov-head h2 { flex: 1; min-width: 0; }
 
 .prov-section { display: flex; flex-direction: column; gap: 10px; }
+.prov-tab[hidden] { display: none; }
 
 .prov-list { display: flex; flex-direction: column; gap: 6px; }
 .prov-row {

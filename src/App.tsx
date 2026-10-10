@@ -702,6 +702,18 @@ export default function App() {
     startRuntime(r, project);
   };
 
+  // A subscription sign-in or sign-out changes the models the engine offers, and it
+  // reads credentials at startup: restart the shown agent (if idle) in place,
+  // keeping its session and the current screen. Busy agents pick it up on their next start.
+  const subscriptionsChanged = useRef(() => {});
+  subscriptionsChanged.current = () => {
+    const r = rtRef.current;
+    if (!r || r.busy || !r.cwd) return;
+    const current = sessions.find((m) => m.id === s.sessionId);
+    if (current && s.items.length) r.pendingSession = current.path;
+    startRuntime(r, r.cwd);
+  };
+
   /** Commit message from the agent, asked on the side so the session history stays clean. */
   const generateCommitMessage = async (): Promise<string> => {
     const r = rtRef.current;
@@ -1150,6 +1162,7 @@ export default function App() {
       {providersOpen && (
         <ProviderModal
           onClose={() => setProvidersOpen(false)}
+          onSubscriptionsChanged={() => subscriptionsChanged.current()}
           onSaved={({ id, firstModel }) => {
             setProvidersOpen(false);
             // omp reads models.yml only at startup: restart it, then pick the new model.

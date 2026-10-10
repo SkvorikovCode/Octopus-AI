@@ -11,11 +11,17 @@ import {
 } from "../lib/providers";
 import { t, tn } from "../lib/i18n";
 import { DotSpinner, Icon } from "./Glyphs";
+import { Subscriptions } from "./Subscriptions";
 import "./providers.css";
+
+export type ProviderTab = "subscriptions" | "custom";
 
 type Props = {
   onClose: () => void;
   onSaved: (result: { id: string; firstModel?: string }) => void;
+  /** A subscription sign-in or sign-out changed the available models. */
+  onSubscriptionsChanged: () => void;
+  initialTab?: ProviderTab;
 };
 
 const KEY_SOURCE: Record<ProviderInfo["keySource"], { label: string; warn: boolean }> = {
@@ -36,9 +42,15 @@ const dedupe = (items: string[]): string[] => [...new Set(items)];
 const CHECKLIST_FILTER_THRESHOLD = 10;
 const CONFIRM_TIMEOUT_MS = 3000;
 
-export function ProviderModal({ onClose, onSaved }: Props): ReactElement {
+export function ProviderModal({
+  onClose,
+  onSaved,
+  onSubscriptionsChanged,
+  initialTab = "subscriptions",
+}: Props): ReactElement {
   const uid = useId();
   const titleId = `${uid}-title`;
+  const [tab, setTab] = useState<ProviderTab>(initialTab);
 
   // Connected providers
   const [installed, setInstalled] = useState<ProviderInfo[]>();
@@ -195,259 +207,323 @@ export function ProviderModal({ onClose, onSaved }: Props): ReactElement {
           </button>
         </div>
 
-        <p>
-          {t(
-            "Подключите любой OpenAI- или Anthropic-совместимый сервер. Ключ хранится в связке ключей системы, в конфиг агента попадает только ссылка на него.",
-          )}
-        </p>
-
-        {/* Connected providers */}
-        <section className="prov-section" aria-label={t("Подключённые провайдеры")}>
-          <div className="label">{t("Подключённые")}</div>
-
-          {listError && <div className="err-card">{listError}</div>}
-
-          {installed === undefined && !listError && <div className="prov-empty">{t("Загрузка…")}</div>}
-
-          {installed?.length === 0 && <div className="prov-empty">{t("Провайдеров пока нет.")}</div>}
-
-          {installed && installed.length > 0 && (
-            <div className="prov-list">
-              {installed.map((p) => {
-                const ks = KEY_SOURCE[p.keySource] ?? { label: p.keySource, warn: false };
-                const confirming = confirmId === p.id;
-                return (
-                  <div className="prov-row" key={p.id}>
-                    <div className="prov-row-main">
-                      <span className="prov-row-id">{p.id}</span>
-                      <span className="prov-row-url" title={p.baseUrl}>
-                        {p.baseUrl}
-                      </span>
-                    </div>
-                    <div className="prov-row-meta">
-                      <span className="prov-count">{tn(p.models.length, "модель|модели|моделей")}</span>
-                      <span className={`prov-badge${ks.warn ? " warn" : ""}`}>{t(ks.label)}</span>
-                      {p.managed ? (
-                        <button
-                          type="button"
-                          className={`prov-del${confirming ? " confirm" : ""}`}
-                          disabled={removingId === p.id}
-                          onClick={() => (confirming ? remove(p.id) : setConfirmId(p.id))}
-                        >
-                          {confirming ? t("Точно удалить?") : t("Удалить")}
-                        </button>
-                      ) : (
-                        <span className="prov-note">{t("настроен вручную")}</span>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </section>
-
-        {/* New provider */}
-        <section className="prov-section" aria-label={t("Новый провайдер")}>
-          <div className="label">{t("Новый провайдер")}</div>
-
-          <div className="prov-field">
-            <label className="label prov-label" htmlFor={`${uid}-name`}>
-              {t("Название")}
-            </label>
-            <input
-              id={`${uid}-name`}
-              className="prov-input"
-              value={name}
-              placeholder={t("Например, My Proxy")}
-              autoComplete="off"
-              onChange={(e) => setName(e.target.value)}
-            />
-            <span className="prov-id">ID: {id || "—"}</span>
-            {name.trim() !== "" && id === "" && (
-              <span className="prov-hint warn">
-                {t("Нужны латинские буквы или цифры: из названия не получился ID.")}
-              </span>
-            )}
-            {existing && (
-              <span className="prov-hint warn">
-                {t("Провайдер «{id}» уже подключён и будет перезаписан.", { id })}
-              </span>
-            )}
-          </div>
-
-          <div className="prov-field">
-            <label className="label prov-label" htmlFor={`${uid}-url`}>
-              Base URL
-            </label>
-            <input
-              id={`${uid}-url`}
-              className="prov-input"
-              value={baseUrl}
-              placeholder="https://api.example.com/v1"
-              autoComplete="off"
-              spellCheck={false}
-              onChange={(e) => setBaseUrl(e.target.value)}
-            />
-          </div>
-
-          <div className="prov-field">
-            <span className="label prov-label" id={`${uid}-api-label`}>
-              {t("Тип API")}
-            </span>
-            <div className="prov-seg" role="group" aria-labelledby={`${uid}-api-label`}>
-              {API_KINDS.map((k) => (
-                <button
-                  key={k.value}
-                  type="button"
-                  aria-pressed={api === k.value}
-                  onClick={() => setApi(k.value)}
-                >
-                  {t(k.label)}
-                </button>
-              ))}
-            </div>
-            {apiHint && <span className="prov-hint">{t(apiHint)}</span>}
-          </div>
-
-          <div className="prov-field">
-            <label className="label prov-label" htmlFor={`${uid}-key`}>
-              {t("API-ключ")}
-            </label>
-            <input
-              id={`${uid}-key`}
-              className="prov-input"
-              type="password"
-              value={apiKey}
-              autoComplete="off"
-              onChange={(e) => setApiKey(e.target.value)}
-            />
-          </div>
-
+        <div className="prov-seg" role="tablist" aria-label={t("Способ подключения")}>
           <button
             type="button"
-            className="btn prov-inline-btn"
-            disabled={!canDiscover}
-            onClick={discover}
+            role="tab"
+            aria-selected={tab === "subscriptions"}
+            aria-pressed={tab === "subscriptions"}
+            onClick={() => setTab("subscriptions")}
           >
-            {discovering && <DotSpinner />}
-            {t("Получить модели")}
+            {t("Подписки")}
           </button>
-
-          {discoverError && <div className="err-card">{discoverError}</div>}
-          {discoverNote && <span className="prov-hint">{t(discoverNote)}</span>}
-
-          {candidates.length > 0 && (
-            <div className="prov-field">
-              {candidates.length > CHECKLIST_FILTER_THRESHOLD && (
-                <>
-                  <label className="prov-sr" htmlFor={`${uid}-filter`}>
-                    {t("Фильтр моделей")}
-                  </label>
-                  <input
-                    id={`${uid}-filter`}
-                    className="prov-input"
-                    value={filter}
-                    placeholder={t("Фильтр моделей")}
-                    autoComplete="off"
-                    onChange={(e) => setFilter(e.target.value)}
-                  />
-                </>
-              )}
-
-              <div className="prov-toolbar">
-                <span className="prov-hint">
-                  {t("Выбрано: {chosen} из {total}", { chosen: chosen.length, total: candidates.length })}
-                </span>
-                <button type="button" className="prov-link" disabled={visible.length === 0} onClick={selectVisible}>
-                  {t("Выбрать все")}
-                </button>
-                <span className="prov-hint">/</span>
-                <button type="button" className="prov-link" disabled={visible.length === 0} onClick={clearVisible}>
-                  {t("Снять все")}
-                </button>
-              </div>
-
-              <div className="prov-check-list" role="group" aria-label={t("Модели")}>
-                {visible.map((m) => (
-                  <label key={m} className="prov-check-item">
-                    <input type="checkbox" checked={selected.includes(m)} onChange={() => toggle(m)} />
-                    <span>{m}</span>
-                  </label>
-                ))}
-                {visible.length === 0 && <span className="prov-hint">{t("Ничего не найдено")}</span>}
-              </div>
-            </div>
-          )}
-
-          <div className="prov-field">
-            <label className="label prov-label" htmlFor={`${uid}-manual`}>
-              {t("ID модели")}
-            </label>
-            <div className="prov-manual">
-              <input
-                id={`${uid}-manual`}
-                className="prov-input"
-                value={manualDraft}
-                placeholder={t("например, gpt-4o-mini")}
-                autoComplete="off"
-                spellCheck={false}
-                onChange={(e) => setManualDraft(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    addManual();
-                  }
-                }}
-              />
-              <button type="button" className="btn" disabled={!manualDraft.trim()} onClick={addManual}>
-                {t("Добавить")}
-              </button>
-            </div>
-          </div>
-
-          <div className="prov-row2">
-            <div className="prov-field">
-              <label className="label prov-label" htmlFor={`${uid}-ctx`}>
-                {t("Контекст, токенов")}
-              </label>
-              <input
-                id={`${uid}-ctx`}
-                className="prov-input"
-                type="number"
-                min={1}
-                inputMode="numeric"
-                value={contextDraft}
-                aria-invalid={contextWindow === undefined}
-                onChange={(e) => setContextDraft(e.target.value)}
-              />
-            </div>
-            <div className="prov-field">
-              <label className="label prov-label" htmlFor={`${uid}-max`}>
-                {t("Макс. ответ")}
-              </label>
-              <input
-                id={`${uid}-max`}
-                className="prov-input"
-                type="number"
-                min={1}
-                inputMode="numeric"
-                value={maxDraft}
-                aria-invalid={maxTokens === undefined}
-                onChange={(e) => setMaxDraft(e.target.value)}
-              />
-            </div>
-          </div>
-          <span className="prov-hint">{t("Значения применяются ко всем выбранным моделям.")}</span>
-        </section>
-
-        {saveError && <div className="err-card">{saveError}</div>}
-
-        <div className="prov-actions">
-          <button type="button" className="btn primary" disabled={!canSave} onClick={save}>
-            {saving ? t("Подключаем…") : t("Подключить")}
+          <button
+            type="button"
+            role="tab"
+            aria-selected={tab === "custom"}
+            aria-pressed={tab === "custom"}
+            onClick={() => setTab("custom")}
+          >
+            {t("Свой сервер")}
           </button>
         </div>
+
+        {/* Kept mounted while hidden: a running sign-in survives a look at the other tab. */}
+        <div hidden={tab !== "subscriptions"} className="prov-tab">
+          <Subscriptions onChanged={onSubscriptionsChanged} />
+        </div>
+
+        {tab === "custom" && (
+          <>
+            <p>
+              {t(
+                "Подключите любой OpenAI- или Anthropic-совместимый сервер. Ключ хранится в связке ключей системы, в конфиг агента попадает только ссылка на него.",
+              )}
+            </p>
+
+            {/* Connected providers */}
+            <section className="prov-section" aria-label={t("Подключённые провайдеры")}>
+              <div className="label">{t("Подключённые")}</div>
+
+              {listError && <div className="err-card">{listError}</div>}
+
+              {installed === undefined && !listError && (
+                <div className="prov-empty">{t("Загрузка…")}</div>
+              )}
+
+              {installed?.length === 0 && (
+                <div className="prov-empty">{t("Провайдеров пока нет.")}</div>
+              )}
+
+              {installed && installed.length > 0 && (
+                <div className="prov-list">
+                  {installed.map((p) => {
+                    const ks = KEY_SOURCE[p.keySource] ?? { label: p.keySource, warn: false };
+                    const confirming = confirmId === p.id;
+                    return (
+                      <div className="prov-row" key={p.id}>
+                        <div className="prov-row-main">
+                          <span className="prov-row-id">{p.id}</span>
+                          <span className="prov-row-url" title={p.baseUrl}>
+                            {p.baseUrl}
+                          </span>
+                        </div>
+                        <div className="prov-row-meta">
+                          <span className="prov-count">
+                            {tn(p.models.length, "модель|модели|моделей")}
+                          </span>
+                          <span className={`prov-badge${ks.warn ? " warn" : ""}`}>
+                            {t(ks.label)}
+                          </span>
+                          {p.managed ? (
+                            <button
+                              type="button"
+                              className={`prov-del${confirming ? " confirm" : ""}`}
+                              disabled={removingId === p.id}
+                              onClick={() => (confirming ? remove(p.id) : setConfirmId(p.id))}
+                            >
+                              {confirming ? t("Точно удалить?") : t("Удалить")}
+                            </button>
+                          ) : (
+                            <span className="prov-note">{t("настроен вручную")}</span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </section>
+
+            {/* New provider */}
+            <section className="prov-section" aria-label={t("Новый провайдер")}>
+              <div className="label">{t("Новый провайдер")}</div>
+
+              <div className="prov-field">
+                <label className="label prov-label" htmlFor={`${uid}-name`}>
+                  {t("Название")}
+                </label>
+                <input
+                  id={`${uid}-name`}
+                  className="prov-input"
+                  value={name}
+                  placeholder={t("Например, My Proxy")}
+                  autoComplete="off"
+                  onChange={(e) => setName(e.target.value)}
+                />
+                <span className="prov-id">ID: {id || "—"}</span>
+                {name.trim() !== "" && id === "" && (
+                  <span className="prov-hint warn">
+                    {t("Нужны латинские буквы или цифры: из названия не получился ID.")}
+                  </span>
+                )}
+                {existing && (
+                  <span className="prov-hint warn">
+                    {t("Провайдер «{id}» уже подключён и будет перезаписан.", { id })}
+                  </span>
+                )}
+              </div>
+
+              <div className="prov-field">
+                <label className="label prov-label" htmlFor={`${uid}-url`}>
+                  Base URL
+                </label>
+                <input
+                  id={`${uid}-url`}
+                  className="prov-input"
+                  value={baseUrl}
+                  placeholder="https://api.example.com/v1"
+                  autoComplete="off"
+                  spellCheck={false}
+                  onChange={(e) => setBaseUrl(e.target.value)}
+                />
+              </div>
+
+              <div className="prov-field">
+                <span className="label prov-label" id={`${uid}-api-label`}>
+                  {t("Тип API")}
+                </span>
+                <div className="prov-seg" role="group" aria-labelledby={`${uid}-api-label`}>
+                  {API_KINDS.map((k) => (
+                    <button
+                      key={k.value}
+                      type="button"
+                      aria-pressed={api === k.value}
+                      onClick={() => setApi(k.value)}
+                    >
+                      {t(k.label)}
+                    </button>
+                  ))}
+                </div>
+                {apiHint && <span className="prov-hint">{t(apiHint)}</span>}
+              </div>
+
+              <div className="prov-field">
+                <label className="label prov-label" htmlFor={`${uid}-key`}>
+                  {t("API-ключ")}
+                </label>
+                <input
+                  id={`${uid}-key`}
+                  className="prov-input"
+                  type="password"
+                  value={apiKey}
+                  autoComplete="off"
+                  onChange={(e) => setApiKey(e.target.value)}
+                />
+              </div>
+
+              <button
+                type="button"
+                className="btn prov-inline-btn"
+                disabled={!canDiscover}
+                onClick={discover}
+              >
+                {discovering && <DotSpinner />}
+                {t("Получить модели")}
+              </button>
+
+              {discoverError && <div className="err-card">{discoverError}</div>}
+              {discoverNote && <span className="prov-hint">{t(discoverNote)}</span>}
+
+              {candidates.length > 0 && (
+                <div className="prov-field">
+                  {candidates.length > CHECKLIST_FILTER_THRESHOLD && (
+                    <>
+                      <label className="prov-sr" htmlFor={`${uid}-filter`}>
+                        {t("Фильтр моделей")}
+                      </label>
+                      <input
+                        id={`${uid}-filter`}
+                        className="prov-input"
+                        value={filter}
+                        placeholder={t("Фильтр моделей")}
+                        autoComplete="off"
+                        onChange={(e) => setFilter(e.target.value)}
+                      />
+                    </>
+                  )}
+
+                  <div className="prov-toolbar">
+                    <span className="prov-hint">
+                      {t("Выбрано: {chosen} из {total}", {
+                        chosen: chosen.length,
+                        total: candidates.length,
+                      })}
+                    </span>
+                    <button
+                      type="button"
+                      className="prov-link"
+                      disabled={visible.length === 0}
+                      onClick={selectVisible}
+                    >
+                      {t("Выбрать все")}
+                    </button>
+                    <span className="prov-hint">/</span>
+                    <button
+                      type="button"
+                      className="prov-link"
+                      disabled={visible.length === 0}
+                      onClick={clearVisible}
+                    >
+                      {t("Снять все")}
+                    </button>
+                  </div>
+
+                  <div className="prov-check-list" role="group" aria-label={t("Модели")}>
+                    {visible.map((m) => (
+                      <label key={m} className="prov-check-item">
+                        <input
+                          type="checkbox"
+                          checked={selected.includes(m)}
+                          onChange={() => toggle(m)}
+                        />
+                        <span>{m}</span>
+                      </label>
+                    ))}
+                    {visible.length === 0 && (
+                      <span className="prov-hint">{t("Ничего не найдено")}</span>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              <div className="prov-field">
+                <label className="label prov-label" htmlFor={`${uid}-manual`}>
+                  {t("ID модели")}
+                </label>
+                <div className="prov-manual">
+                  <input
+                    id={`${uid}-manual`}
+                    className="prov-input"
+                    value={manualDraft}
+                    placeholder={t("например, gpt-4o-mini")}
+                    autoComplete="off"
+                    spellCheck={false}
+                    onChange={(e) => setManualDraft(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        addManual();
+                      }
+                    }}
+                  />
+                  <button
+                    type="button"
+                    className="btn"
+                    disabled={!manualDraft.trim()}
+                    onClick={addManual}
+                  >
+                    {t("Добавить")}
+                  </button>
+                </div>
+              </div>
+
+              <div className="prov-row2">
+                <div className="prov-field">
+                  <label className="label prov-label" htmlFor={`${uid}-ctx`}>
+                    {t("Контекст, токенов")}
+                  </label>
+                  <input
+                    id={`${uid}-ctx`}
+                    className="prov-input"
+                    type="number"
+                    min={1}
+                    inputMode="numeric"
+                    value={contextDraft}
+                    aria-invalid={contextWindow === undefined}
+                    onChange={(e) => setContextDraft(e.target.value)}
+                  />
+                </div>
+                <div className="prov-field">
+                  <label className="label prov-label" htmlFor={`${uid}-max`}>
+                    {t("Макс. ответ")}
+                  </label>
+                  <input
+                    id={`${uid}-max`}
+                    className="prov-input"
+                    type="number"
+                    min={1}
+                    inputMode="numeric"
+                    value={maxDraft}
+                    aria-invalid={maxTokens === undefined}
+                    onChange={(e) => setMaxDraft(e.target.value)}
+                  />
+                </div>
+              </div>
+              <span className="prov-hint">
+                {t("Значения применяются ко всем выбранным моделям.")}
+              </span>
+            </section>
+
+            {saveError && <div className="err-card">{saveError}</div>}
+
+            <div className="prov-actions">
+              <button type="button" className="btn primary" disabled={!canSave} onClick={save}>
+                {saving ? t("Подключаем…") : t("Подключить")}
+              </button>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

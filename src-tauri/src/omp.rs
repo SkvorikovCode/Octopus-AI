@@ -83,13 +83,13 @@ fn stop_proc(mut p: Proc) {
     });
 }
 
-fn home() -> String {
+pub(crate) fn home() -> String {
     std::env::var("HOME").unwrap_or_default()
 }
 
 /// PATH from the user's login shell. Apps started from Finder get a minimal
 /// PATH, and omp's bash tool needs the user's real one (git, node, cargo...).
-fn shell_path() -> &'static str {
+pub(crate) fn shell_path() -> &'static str {
     static PATH: OnceLock<String> = OnceLock::new();
     PATH.get_or_init(|| {
         let shell = std::env::var("SHELL").unwrap_or_else(|_| "/bin/zsh".into());
@@ -119,7 +119,7 @@ fn bundled_omp(exe: &Path) -> Option<PathBuf> {
     p.is_file().then_some(p)
 }
 
-fn locate_omp() -> Option<PathBuf> {
+pub(crate) fn locate_omp() -> Option<PathBuf> {
     if let Ok(p) = std::env::var("OMP_BIN") {
         let p = PathBuf::from(p);
         if p.is_file() {
@@ -167,6 +167,7 @@ pub fn omp_start(
     approval_mode: Option<String>,
     lang: Option<String>,
     page: String,
+    ephemeral: Option<bool>,
 ) -> Result<(), String> {
     {
         let mut procs = state.procs.lock().unwrap();
@@ -185,8 +186,11 @@ pub fn omp_start(
     let mode = approval_mode.unwrap_or_else(|| "write".into());
 
     let mut cmd = Command::new(&bin);
-    cmd.args(["--mode", "rpc-ui", "--approval-mode", &mode])
-        .args(["--append-system-prompt", &ui_prompt(lang.as_deref())])
+    cmd.args(["--mode", "rpc-ui", "--approval-mode", &mode]);
+    if ephemeral == Some(true) {
+        cmd.arg("--no-session");
+    }
+    cmd.args(["--append-system-prompt", &ui_prompt(lang.as_deref())])
         .current_dir(&cwd)
         .env("PATH", shell_path())
         .stdin(Stdio::piped())

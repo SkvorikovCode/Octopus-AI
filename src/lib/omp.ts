@@ -53,12 +53,13 @@ export class OmpClient {
     this.unlisten = [];
   }
 
-  async start(cwd: string, approvalMode = "write") {
+  /** `ephemeral`: a helper process that writes no session file. */
+  async start(cwd: string, approvalMode = "write", ephemeral = false) {
     this.rejectAll(t("агент перезапущен"));
     const previous = this.generation;
     this.generation = ++lastGeneration;
     if (previous) await invoke("omp_stop", { generation: previous }).catch(() => {});
-    await invoke("omp_start", { cwd, generation: this.generation, approvalMode, lang: currentLang(), page: PAGE_ID });
+    await invoke("omp_start", { cwd, generation: this.generation, approvalMode, lang: currentLang(), page: PAGE_ID, ephemeral });
   }
 
   async stop() {

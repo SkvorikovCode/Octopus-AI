@@ -60,6 +60,7 @@ pub fn run() {
             files::read_image_file,
             files::path_is_dir,
             pty::pty_open,
+            pty::pty_open_login,
             pty::pty_write,
             pty::pty_resize,
             pty::pty_close,
