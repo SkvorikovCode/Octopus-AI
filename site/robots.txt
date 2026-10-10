@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://skvorikovcode.github.io/Octopus-AI/sitemap.xml

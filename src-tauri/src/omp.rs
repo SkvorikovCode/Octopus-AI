@@ -6,7 +6,7 @@
 
 use std::collections::HashMap;
 use std::io::{BufRead, BufReader, Write};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process::{Child, ChildStdin, Command, Stdio};
 use std::sync::{Arc, Mutex, OnceLock};
 use std::thread;
@@ -111,12 +111,23 @@ fn shell_path() -> &'static str {
     })
 }
 
+/// Release builds ship the engine next to the app executable (Tauri's
+/// `externalBin` puts it in Contents/MacOS). Dev builds have no such file and
+/// fall through to the engine installed on the machine.
+fn bundled_omp(exe: &Path) -> Option<PathBuf> {
+    let p = exe.parent()?.join("omp");
+    p.is_file().then_some(p)
+}
+
 fn locate_omp() -> Option<PathBuf> {
     if let Ok(p) = std::env::var("OMP_BIN") {
         let p = PathBuf::from(p);
         if p.is_file() {
             return Some(p);
         }
+    }
+    if let Some(p) = std::env::current_exe().ok().as_deref().and_then(bundled_omp) {
+        return Some(p);
     }
     let found = shell_path()
         .split(':')
@@ -353,4 +364,29 @@ fn reassemble(pending: &mut Option<Chunks>, f: &Value) -> Result<Option<Value>, 
     serde_json::from_str(&text)
         .map(Some)
         .map_err(|e| format!("rpc_chunk: {e}"))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn finds_the_engine_next_to_the_executable() {
+        let dir = std::env::temp_dir().join(format!("octopus-omp-test-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(&dir).unwrap();
+        let exe = dir.join("octopus-ai");
+        std::fs::write(&exe, b"").unwrap();
+
+        assert_eq!(bundled_omp(&exe), None, "no engine shipped yet");
+
+        std::fs::write(dir.join("omp"), b"").unwrap();
+        assert_eq!(bundled_omp(&exe), Some(dir.join("omp")));
+
+        // A directory named omp is not an engine.
+        std::fs::remove_file(dir.join("omp")).unwrap();
+        std::fs::create_dir(dir.join("omp")).unwrap();
+        assert_eq!(bundled_omp(&exe), None);
+        let _ = std::fs::remove_dir_all(&dir);
+    }
 }
