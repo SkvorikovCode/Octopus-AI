@@ -1,0 +1,73 @@
+/* PlanCard: the "plan ready" card after a plan-first turn. Colors come from the theme tokens only. */
+
+.plan-dock {
+  max-width: 720px; width: 100%; margin: 0 auto 10px; padding: 0 12px; box-sizing: border-box;
+}
+
+.plan-card {
+  padding: 16px 18px; display: flex; flex-direction: column; gap: 12px; min-width: 0;
+}
+
+.plan-head {
+  display: flex; justify-content: space-between; align-items: center;
+  font-family: var(--mono); font-size: 11px; letter-spacing: 0.06em;
+}
+.plan-label { color: var(--ink-2); text-transform: uppercase; }
+.plan-count {
+  font-family: var(--dots); font-weight: 900; font-size: 18px; line-height: 1; color: var(--ink);
+}
+.plan-count span { color: var(--dim); }
+
+.plan-tasks {
+  display: flex; flex-direction: column; gap: 10px;
+  max-height: 320px; overflow-y: auto;
+}
+.plan-phase { display: flex; flex-direction: column; gap: 4px; }
+.plan-phase-name { font-family: var(--mono); font-size: 10px; color: var(--mute); }
+
+.plan-task {
+  display: flex; gap: 8px; align-items: flex-start;
+  font-size: 13px; line-height: 1.45; color: var(--ink-2); min-width: 0;
+}
+.plan-task svg { flex: none; margin-top: 3px; }
+.plan-task span { min-width: 0; overflow-wrap: anywhere; }
+.plan-task.is-muted { color: var(--mute); }
+.plan-task-struck { text-decoration: line-through; }
+
+.plan-summary {
+  font-size: 13px; line-height: 1.5; color: var(--ink-2); white-space: pre-wrap; overflow-wrap: anywhere;
+  display: -webkit-box; -webkit-line-clamp: 6; -webkit-box-orient: vertical; overflow: hidden;
+}
+
+.plan-revise-input {
+  width: 100%; box-sizing: border-box; min-height: 64px; max-height: 200px; resize: vertical;
+  padding: 10px 12px; border-radius: 12px; border: 1px solid var(--line-2);
+  background: var(--panel-2); color: var(--ink);
+  font: inherit; font-size: 13px; line-height: 1.5; outline: none;
+}
+.plan-revise-input:focus { border-color: var(--line-3); }
+.plan-revise-input::placeholder { color: var(--mute); }
+
+.plan-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+
+.plan-primary, .plan-secondary, .plan-text {
+  height: 32px; font-size: 13px; white-space: nowrap; -webkit-app-region: no-drag;
+}
+.plan-primary {
+  padding: 0 14px; border-radius: 10px; background: var(--accent); color: var(--on-accent);
+}
+.plan-primary:disabled { opacity: 0.4; }
+.plan-secondary {
+  padding: 0 12px; border-radius: 10px; border: 1px solid var(--line-2); color: var(--ink-2);
+}
+.plan-secondary:hover:not(:disabled) { color: var(--ink); border-color: var(--line-3); }
+.plan-secondary:disabled { opacity: 0.4; }
+.plan-text {
+  margin-left: auto; padding: 0 8px; color: var(--mute);
+}
+.plan-text:hover { color: var(--ink); }
+
+@media (max-width: 520px) {
+  .plan-card { padding: 14px 14px; }
+  .plan-text { margin-left: 0; }
+}

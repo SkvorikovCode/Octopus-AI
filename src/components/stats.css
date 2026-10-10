@@ -1,0 +1,304 @@
+/* Stats screen. All classes prefixed with .st- */
+
+.st-root {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---------- top bar ---------- */
+
+.st-bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 12px 12px 0;
+}
+.st-back { padding: 0 14px; }
+.st-title {
+  margin: 0 auto 0 4px;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+.st-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.st-seg {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 999px;
+  background: var(--panel);
+  border: 1px solid var(--line-2);
+}
+.st-seg button {
+  height: 30px;
+  padding: 0 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  white-space: nowrap;
+  color: var(--ink-3);
+  transition: color 0.15s, background 0.15s;
+}
+.st-seg button:hover { color: var(--ink-2); }
+.st-seg button[aria-pressed="true"] {
+  background: var(--raise);
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--line-3);
+}
+
+/* ---------- body ---------- */
+
+.st-body {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.st-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 14px;
+}
+
+.st-tile {
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+.st-wide { grid-column: 1 / -1; }
+/* Top sessions sit beside the models tile once there are 2+ columns. */
+@media (min-width: 900px) { .st-beside { grid-column: 2 / -1; } }
+.st-label { margin: 0; }
+
+.st-big {
+  font-family: var(--dots);
+  font-weight: 900;
+  font-size: 44px;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  color: var(--ink);
+  white-space: nowrap;
+}
+.st-sub {
+  margin-top: auto;
+  font-size: 13px;
+  color: var(--ink-3);
+}
+.st-muted {
+  margin: 0;
+  font-size: 13px;
+  color: var(--mute);
+}
+
+/* ---------- states ---------- */
+
+.st-state {
+  flex: 1;
+  min-height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-size: 14px;
+  color: var(--ink-3);
+}
+.st-error {
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+.st-error .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.st-error-detail {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--mute);
+}
+.st-empty {
+  flex: 1;
+  min-height: 240px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  text-align: center;
+}
+.st-empty p {
+  margin: 0;
+  font-size: 15px;
+  color: var(--ink-3);
+}
+
+/* ---------- days chart (dot columns) ---------- */
+
+.st-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+.st-svg {
+  display: block;
+  width: 100%;
+  height: 140px;
+  overflow: visible;
+}
+.st-track { stroke: var(--dot); transition: stroke 0.15s; }
+.st-lit { stroke: var(--ink); transition: opacity 0.15s; }
+.st-lit-today { stroke: var(--accent); }
+.st-col:hover .st-track { stroke: var(--dim); }
+.st-col:hover .st-lit { opacity: 0.7; }
+.st-axis {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--mute);
+}
+
+/* ---------- models ---------- */
+
+.st-models {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.st-model {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 6px 12px;
+}
+.st-model-name {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  min-width: 0;
+  font-size: 14px;
+  color: var(--ink);
+}
+.st-model-id {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+.st-provider {
+  font-size: 11px;
+  color: var(--mute);
+  white-space: nowrap;
+}
+.st-model-cost {
+  font-size: 13px;
+  color: var(--ink);
+  text-align: right;
+}
+.st-model-tokens {
+  font-size: 11px;
+  color: var(--mute);
+  text-align: right;
+}
+.st-dotbar {
+  position: relative;
+  display: block;
+  height: 8px;
+  min-width: 0;
+  background: radial-gradient(circle, var(--dot) 2px, transparent 2.5px) 0 0 / 8px 8px repeat-x;
+}
+.st-dotbar-fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  max-width: 100%;
+  background: radial-gradient(circle, var(--ink-2) 2px, transparent 2.5px) 0 0 / 8px 8px repeat-x;
+}
+
+/* ---------- sessions ---------- */
+
+.st-sessions {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.st-session {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  text-align: left;
+  color: var(--ink-2);
+}
+button.st-session:hover {
+  background: var(--panel-2);
+  border-color: var(--line-2);
+  color: var(--ink);
+}
+.st-session-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.st-session-title {
+  font-size: 14px;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.st-session-proj {
+  font-size: 11px;
+  color: var(--mute);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.st-session-nums {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: baseline;
+  gap: 4px 14px;
+  flex-shrink: 0;
+  font-size: 12px;
+}
+.st-session-tokens { color: var(--ink-3); }
+.st-session-cost { font-size: 13px; color: var(--ink); }
+.st-session-date {
+  min-width: 64px;
+  text-align: right;
+  font-size: 11px;
+  color: var(--mute);
+}
+
+/* ---------- narrow screens ---------- */
+
+@media (max-width: 560px) {
+  .st-session-nums { gap: 2px 12px; }
+  .st-session-date { min-width: 0; }
+}

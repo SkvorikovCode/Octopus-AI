@@ -1,0 +1,232 @@
+/* Project switcher: sidebar trigger and recent-projects popover. */
+
+/* The popover anchors to the sidebar row (.side-project), not to the narrow trigger. */
+.side-project {
+  position: relative;
+}
+
+.prj-wrap {
+  position: static;
+  display: inline-flex;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.prj-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 160px;
+  min-width: 0;
+  padding: 4px 6px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--ink-3);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  transition: color 0.12s ease, background 0.12s ease;
+}
+.prj-trigger:hover,
+.prj-trigger[aria-expanded="true"] { color: var(--ink); }
+.prj-trigger:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+.prj-icon { flex-shrink: 0; }
+
+.prj-trigger-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.prj-chev {
+  flex-shrink: 0;
+  opacity: 0.7;
+  transition: transform 0.15s ease;
+}
+.prj-chev.is-open { transform: rotate(180deg); }
+
+/* Popover */
+.prj-pop {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 25;
+  width: auto;
+  max-width: 100%;
+  min-width: 0;
+  padding: 6px;
+  box-sizing: border-box;
+  background: var(--panel);
+  border: 1px solid var(--line-2);
+  border-radius: 14px;
+  box-shadow: var(--shadow-pop);
+  color: var(--ink);
+  text-align: left;
+}
+
+.prj-head {
+  padding: 8px 10px 6px;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--mute);
+}
+
+.prj-hint {
+  padding: 2px 10px 6px;
+  font-size: 12px;
+  color: var(--mute);
+}
+
+.prj-empty {
+  padding: 10px 12px 12px;
+  font-size: 13px;
+  color: var(--mute);
+}
+
+.prj-list {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.prj-row {
+  position: relative;
+  min-width: 0;
+  border-radius: 10px;
+}
+
+.prj-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 8px 32px 8px 10px;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  color: var(--ink-2);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.prj-item:hover:not(:disabled),
+.prj-item:focus-visible {
+  background: var(--panel-2);
+  color: var(--ink);
+  outline: none;
+}
+.prj-item:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.prj-dot {
+  flex-shrink: 0;
+  width: 6px;
+  height: 6px;
+  margin-top: 7px;
+  border-radius: 50%;
+}
+.prj-dot.is-current { background: var(--accent); }
+
+.prj-item-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.prj-item-name {
+  font-size: 14px;
+  line-height: 1.3;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.prj-item-path {
+  font-family: var(--mono);
+  font-size: 11px;
+  line-height: 1.3;
+  color: var(--mute);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Remove-from-list button: revealed on row hover or keyboard focus. */
+.prj-forget {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  transform: translateY(-50%);
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--mute);
+  opacity: 0;
+  pointer-events: none;
+  cursor: pointer;
+  transition: opacity 0.12s ease, color 0.12s ease, background 0.12s ease;
+}
+.prj-row:hover .prj-forget,
+.prj-row:focus-within .prj-forget {
+  opacity: 1;
+  pointer-events: auto;
+}
+.prj-forget:hover,
+.prj-forget:focus-visible {
+  color: var(--ink);
+  background: var(--raise);
+  outline: none;
+}
+
+.prj-sep {
+  height: 1px;
+  margin: 6px 4px;
+  background: var(--line);
+}
+
+.prj-browse {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  color: var(--ink-2);
+  font: inherit;
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+}
+.prj-browse:hover:not(:disabled),
+.prj-browse:focus-visible {
+  background: var(--panel-2);
+  color: var(--ink);
+  outline: none;
+}
+.prj-browse:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}

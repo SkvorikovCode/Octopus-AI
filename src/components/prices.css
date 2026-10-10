@@ -1,0 +1,149 @@
+/* Model prices: the table inside Settings → Models and the price editor modal.
+   Classes are prefixed `mp-`. Shared look comes from settings.css (set-card, set-switch, set-knob)
+   and global .card, .btn, .label, .overlay, .modal, .err-card. */
+
+/* Banner after a price change */
+.mp-banner {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  padding: 10px 12px; box-sizing: border-box; border-radius: 10px;
+  background: var(--accent-soft); border: 1px solid var(--accent);
+  font-size: 13px; line-height: 1.4; color: var(--ink);
+}
+.mp-banner-text { flex: 1; min-width: 0; }
+.mp-banner-btn { height: 30px; padding: 0 12px; font-size: 13px; flex-shrink: 0; }
+
+.mp-empty { margin: 0; }
+.mp-note { margin: 0; font-size: 12px; line-height: 1.4; color: var(--ink-3); }
+
+/* Table: grid rows, grouped by provider */
+.mp-table { display: flex; flex-direction: column; gap: 14px; container: mp-table / inline-size; }
+
+.mp-head,
+.mp-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  column-gap: 16px;
+}
+.mp-head {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--dim);
+}
+.mp-nums {
+  display: grid; grid-template-columns: repeat(4, 60px); column-gap: 12px;
+  text-align: right;
+}
+.mp-head .mp-nums { text-align: right; }
+
+.mp-group { display: flex; flex-direction: column; }
+.mp-group-label {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 4px;
+  font-family: var(--mono); font-size: 11px; letter-spacing: 0.04em; color: var(--mute);
+}
+.mp-group-label::after {
+  content: ""; flex: 1; min-width: 20px; border-top: 1px dotted var(--dot);
+}
+
+.mp-row {
+  padding: 9px 8px; margin: 0 -8px; border-radius: 8px; border-top: 1px solid var(--line);
+}
+.mp-row.editable { cursor: pointer; }
+.mp-row.editable:hover { background: var(--panel-2); }
+.mp-row.readonly { cursor: default; }
+
+.mp-name { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.mp-model {
+  font-size: 14px; color: var(--ink);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.mp-id {
+  font-family: var(--mono); font-size: 11px; color: var(--dim);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.mp-tag {
+  align-self: flex-start; padding: 0 6px; border: 1px dotted var(--line-3); border-radius: 4px;
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.04em; color: var(--mute);
+  white-space: nowrap;
+}
+
+.mp-num {
+  font-family: var(--mono); font-size: 13px; color: var(--ink-2);
+  font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+.mp-num.unknown { color: var(--dim); }
+
+.mp-actions { display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
+
+.mp-src {
+  display: inline-block; padding: 2px 7px; border-radius: 999px; white-space: nowrap;
+  border: 1px solid var(--line-3);
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--mute);
+}
+.mp-src.own { color: var(--ink); border-color: var(--dim); }
+.mp-src.free { color: var(--ink-2); }
+.mp-src.catalog { color: var(--mute); }
+.mp-src.none { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
+
+.mp-edit { height: 28px; padding: 0 10px; font-size: 12px; flex-shrink: 0; }
+
+/* Modal */
+.modal.mp-modal { max-width: 520px; max-height: calc(100vh - 48px); overflow-y: auto; gap: 18px; }
+.mp-modal-title { margin: 0; font-size: 20px; font-weight: 600; color: var(--ink); overflow-wrap: anywhere; }
+.mp-modal-sub { font-family: var(--mono); font-size: 11px; color: var(--dim); overflow-wrap: anywhere; }
+
+.mp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 14px; }
+.mp-field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+
+.mp-money {
+  display: flex; align-items: center; width: 100%; height: 36px; box-sizing: border-box;
+  background: var(--bg); border: 1px solid var(--line-2); border-radius: 10px;
+}
+.mp-money:focus-within,
+.mp-money.invalid { border-color: var(--accent); }
+.mp-money-input {
+  flex: 1; min-width: 0; height: 100%; padding: 0 10px 0 12px; box-sizing: border-box;
+  background: transparent; border: 0; outline: none; color: var(--ink);
+  font-family: var(--mono); font-size: 14px; font-variant-numeric: tabular-nums;
+}
+.mp-suffix { padding-right: 12px; font-family: var(--mono); font-size: 11px; color: var(--dim); white-space: nowrap; }
+.mp-int {
+  height: 36px; box-sizing: border-box; width: 100%;
+  padding: 0 12px; background: var(--bg); border: 1px solid var(--line-2); border-radius: 10px;
+  color: var(--ink); font-family: var(--mono); font-size: 14px; outline: none;
+  font-variant-numeric: tabular-nums;
+}
+.mp-int:focus,
+.mp-int[aria-invalid="true"] { border-color: var(--accent); }
+
+.mp-long-head {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  font-size: 14px; color: var(--ink-2);
+}
+.mp-long-fields { display: flex; flex-direction: column; gap: 12px; }
+.mp-long-fields .mp-int-field { max-width: 240px; }
+
+.mp-modal-error { margin: 0; font-size: 12px; line-height: 1.4; color: var(--accent); }
+.mp-modal-actions { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.mp-modal-actions .mp-side { display: flex; gap: 8px; flex-wrap: wrap; }
+.mp-modal-actions .mp-main { display: flex; gap: 8px; margin-left: auto; }
+
+/* Compact rows when the table itself is narrow (settings pane next to the tab menu). */
+@container mp-table (max-width: 600px) {
+  .mp-head { display: none; }
+  .mp-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    row-gap: 8px;
+  }
+  .mp-name { grid-column: 1; grid-row: 1; }
+  .mp-actions { grid-column: 2; grid-row: 1; }
+  .mp-nums { grid-column: 1 / -1; grid-row: 2; grid-template-columns: repeat(4, minmax(0, 1fr)); column-gap: 8px; text-align: left; }
+  .mp-num::before {
+    content: attr(data-label); display: block; margin-bottom: 2px;
+    font-size: 10px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--dim);
+  }
+  .mp-grid { grid-template-columns: 1fr; }
+  .mp-long-fields .mp-int-field { max-width: none; }
+  .mp-modal-actions .mp-main { margin-left: 0; width: 100%; }
+  .mp-modal-actions .mp-main .btn { flex: 1; }
+}

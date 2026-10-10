@@ -1,0 +1,106 @@
+/* Chat thread details: expandable step rows, their args/output panels, reasoning toggle. All classes prefixed with .th- */
+
+/* Step rows become real buttons; reset native button look, keep the .step layout from styles.css */
+.steps-list .th-step-wrap { display: flex; flex-direction: column; min-width: 0; }
+.steps-list .th-step-btn {
+  width: 100%; box-sizing: border-box; margin: 0; border: 0; border-radius: 0;
+  background: none; color: inherit; font: inherit; text-align: left; cursor: pointer;
+}
+.steps-list .th-step-btn:hover { background: var(--raise); }
+.steps-list .th-step-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+
+.th-dur { font-family: var(--mono); font-size: 11px; color: var(--mute); white-space: nowrap; }
+.th-chev { display: flex; flex-shrink: 0; color: var(--mute); }
+
+/* Details panel under an expanded step */
+.th-step-detail {
+  margin: 4px 14px 8px 40px; padding: 10px 12px; min-width: 0;
+  display: flex; flex-direction: column; gap: 12px;
+  background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+  font-size: 13px;
+}
+.th-sec { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.th-sec-title {
+  display: flex; align-items: center; gap: 6px;
+  font-family: var(--mono); font-size: 11px; color: var(--mute);
+}
+.th-path { font-family: var(--mono); font-size: 12px; color: var(--ink-2); word-break: break-all; }
+.th-empty { font-size: 12px; color: var(--mute); }
+
+.th-code {
+  margin: 0; padding: 8px 10px; max-height: 260px; overflow: auto;
+  background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px;
+  font-family: var(--mono); font-size: 12px; line-height: 1.5; color: var(--ink-2);
+  white-space: pre-wrap; word-break: break-word;
+}
+
+.th-diff {
+  max-height: 260px; overflow: auto; padding: 6px 0;
+  background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px;
+  font-family: var(--mono); font-size: 12px; line-height: 1.5;
+}
+.th-diff-line { display: flex; gap: 8px; padding: 0 10px; white-space: pre-wrap; word-break: break-word; }
+.th-diff-line.del { color: var(--accent); }
+.th-diff-line.add { color: var(--ink); }
+.th-gutter { flex-shrink: 0; width: 10px; text-align: center; user-select: none; }
+
+/* Reasoning ("Ход мысли") above the answer text */
+.th-think { display: flex; flex-direction: column; align-items: stretch; gap: 6px; min-width: 0; }
+.th-think-toggle {
+  align-self: flex-start; display: inline-flex; align-items: center; gap: 8px;
+  min-height: 26px; padding: 0 4px 0 0; margin: 0;
+  background: none; border: 0; border-radius: 6px;
+  font-family: var(--mono); font-size: 11px; color: var(--mute); cursor: pointer;
+}
+.th-think-toggle:hover { color: var(--ink-3); }
+.th-think-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.th-think-toggle svg { flex-shrink: 0; }
+.th-think-wait { color: var(--ink-3); }
+.th-think-body {
+  max-height: 240px; overflow: auto; padding-left: 12px; border-left: 2px solid var(--line-2);
+  font-size: 13px; line-height: 1.6; color: var(--ink-3);
+  white-space: pre-wrap; word-break: break-word;
+}
+
+/* Message actions (copy, retry). Invisible until hover or focus inside the message, but still focusable. */
+.th-msg-user { display: flex; flex-direction: column; align-items: flex-end; min-width: 0; }
+.th-actions {
+  display: flex; align-items: center; gap: 4px; margin-top: 4px;
+  opacity: 0; transition: opacity 120ms ease;
+}
+.th-msg:hover .th-actions,
+.th-msg:focus-within .th-actions,
+.th-actions-always { opacity: 1; }
+.th-act {
+  height: 24px; padding: 0 8px; margin: 0; border: 0; border-radius: 8px;
+  background: none; color: var(--mute); font: inherit; font-size: 12px; line-height: 1; cursor: pointer;
+}
+.th-act:hover:not(:disabled) { color: var(--ink); background: var(--panel); }
+.th-act:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.th-act:disabled { opacity: 0.45; cursor: not-allowed; }
+
+/* "!command" run in the project shell */
+.th-shell { border: 1px solid var(--line-2); border-radius: 14px; background: var(--code-bg); overflow: hidden; }
+.th-shell-head { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-bottom: 1px solid var(--line); }
+.th-shell-cmd { flex: 1; min-width: 0; font: 12.5px/1.5 var(--mono); color: var(--ink); white-space: pre-wrap; word-break: break-all; user-select: text; }
+.th-shell-code { font: 11px var(--mono); color: var(--mute); }
+.th-shell-code.bad { color: var(--accent); }
+.th-shell-out { margin: 0; padding: 10px 12px; max-height: 280px; overflow: auto; font: 12px/1.55 var(--mono); color: var(--ink-2); white-space: pre-wrap; word-break: break-word; user-select: text; }
+
+.th-path-link { display: block; text-align: left; text-decoration: underline; text-decoration-color: var(--line-3); text-underline-offset: 3px; }
+.th-path-link:hover { color: var(--ink); text-decoration-color: var(--ink-3); }
+
+/* Long threads: rows skip layout and paint until near the viewport. The newest three rows stay
+   fully laid out so the bottom is exact for stick-to-bottom scrolling. */
+.thread > :not(.th-more) { content-visibility: auto; contain-intrinsic-size: auto 120px; }
+.thread > :nth-last-child(-n + 3) { content-visibility: visible; }
+/* Earlier messages load above the viewport; Thread keeps the scroll position itself. */
+.th-scroll { overflow-anchor: none; }
+.th-more { align-self: center; }
+
+/* "Plan first" mark on a user message */
+.th-plan-badge {
+  display: inline-flex; align-items: center; height: 20px; padding: 0 8px; margin-right: 8px;
+  border-radius: 999px; font-size: 11px; font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.04em;
+  color: var(--accent); background: var(--accent-soft); vertical-align: 2px;
+}

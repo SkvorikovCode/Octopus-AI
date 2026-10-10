@@ -1,0 +1,76 @@
+/* Commit dialog and the commit entry points in the Changes panel. Colors come from styles.css tokens. */
+
+.commit-modal { max-width: 560px; max-height: calc(100vh - 48px); overflow-y: auto; }
+
+.commit-modal .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+
+.commit-head { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.commit-head h2 { flex: 1; min-width: 0; }
+.commit-branch { max-width: 240px; overflow: hidden; text-overflow: ellipsis; }
+
+.commit-section { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+
+.commit-muted { font-size: 13px; color: var(--mute); }
+.commit-muted.mono { font-size: 12px; }
+
+.commit-files {
+  list-style: none; margin: 0; padding: 4px; max-height: 220px; overflow-y: auto;
+  border: 1px solid var(--line-2); border-radius: 12px; background: var(--panel-2);
+}
+.commit-file {
+  display: flex; align-items: center; gap: 10px; min-width: 0;
+  padding: 7px 10px; border-radius: 8px; cursor: pointer; font-size: 13px;
+}
+.commit-file:hover { background: var(--raise); }
+.commit-file input[type="checkbox"] { flex: none; margin: 0; accent-color: var(--accent); cursor: pointer; }
+.commit-file input[type="checkbox"]:disabled { cursor: default; }
+
+.commit-badge {
+  flex: none; width: 18px; height: 18px; border-radius: 5px; display: grid; place-items: center;
+  font: 600 10px/1 var(--mono); color: var(--ink-2); background: var(--raise);
+}
+.commit-badge.s-deleted, .commit-badge.s-conflict { color: var(--accent); }
+
+.commit-file-path {
+  flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-family: var(--mono); font-size: 12px; color: var(--ink-2);
+}
+.commit-nums { flex: none; display: flex; gap: 6px; font: 11px/1 var(--mono); }
+.commit-add { color: var(--ink-3); }
+.commit-del { color: var(--accent); }
+
+.commit-msg-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.commit-gen { height: 30px; padding: 0 12px; font-size: 13px; border-radius: 9px; }
+
+.commit-msg,
+.commit-input {
+  width: 100%; box-sizing: border-box; color: var(--ink); font: 14px/1.5 var(--ui);
+  background: var(--composer); border: 1px solid var(--line-3); border-radius: 12px; outline: none;
+}
+.commit-msg { padding: 10px 12px; min-height: 110px; resize: vertical; }
+.commit-input { height: 38px; padding: 0 12px; }
+.commit-msg:focus, .commit-input:focus { border-color: var(--dim); }
+.commit-msg:disabled, .commit-input:disabled { opacity: 0.6; }
+
+.commit-inline-err { font: 13px/1.4 var(--ui); color: var(--accent); }
+.commit-err { margin: 0; }
+
+.commit-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+
+.commit-result { margin: 0; font-size: 16px; color: var(--ink); }
+.commit-hash { margin-left: 8px; color: var(--accent); font-size: 14px; }
+
+.commit-pr-link {
+  font: 13px/1.4 var(--mono); color: var(--ink-2); word-break: break-all;
+  text-decoration: underline; text-underline-offset: 3px;
+}
+.commit-pr-link:hover { color: var(--ink); }
+
+/* Entry point in the Changes panel and card. */
+.commit-entry { white-space: nowrap; }
+.chg-head-actions .commit-entry { height: 30px; padding: 0 12px; font-size: 13px; border-radius: 9px; align-self: center; }
+
+@media (max-width: 560px) {
+  .commit-modal { padding: 16px; }
+  .commit-actions .btn { flex: 1 1 auto; }
+}

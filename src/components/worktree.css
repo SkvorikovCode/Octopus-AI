@@ -1,0 +1,57 @@
+/* Separate project copy (git worktree): the bar above the composer, the
+   "Копия" composer chip, the fork marker in the sidebar. Colors are tokens only. */
+
+/* Same width and centering as .changes-dock (styles.css). */
+.worktree-dock { max-width: 720px; width: 100%; margin: 0 auto 10px; padding: 0 12px; box-sizing: border-box; }
+
+.worktree-bar {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  min-height: 38px; padding: 6px 8px 6px 14px; box-sizing: border-box;
+  border: 1px solid var(--line-2); border-radius: 14px;
+  background: var(--panel); color: var(--ink-2); font-size: 12.5px;
+}
+
+.wt-label { display: inline-flex; align-items: center; gap: 7px; color: var(--ink); flex: none; }
+.wt-label svg { color: var(--ink-3); flex: none; }
+
+.wt-branch {
+  min-width: 0; max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  padding: 2px 8px; border-radius: 6px; font-size: 11.5px;
+  background: var(--raise); border: 1px solid var(--line-2); color: var(--ink-2);
+}
+.wt-count { font-size: 11px; color: var(--mute); flex: none; }
+.wt-grow { flex: 1; }
+
+.wt-actions { display: flex; align-items: center; gap: 6px; flex: none; }
+.wt-btn {
+  height: 28px; padding: 0 11px; border-radius: 9px; font-size: 12.5px;
+  display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
+  border: 1px solid var(--line-2); background: transparent; color: var(--ink-2);
+}
+.wt-btn:hover:not(:disabled) { border-color: var(--line-3); color: var(--ink); }
+.wt-btn:disabled { opacity: 0.45; cursor: default; }
+.wt-btn-primary { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+.wt-btn-primary:hover:not(:disabled) { background: var(--accent-soft); color: var(--accent); }
+.wt-btn.is-armed { border-color: var(--accent); color: var(--accent); }
+
+.wt-result { display: flex; flex-direction: column; gap: 4px; padding: 6px 14px 0; font-size: 12px; color: var(--ink-3); }
+.wt-result-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.wt-link {
+  border: none; background: none; padding: 0; color: var(--ink-2);
+  text-decoration: underline; text-underline-offset: 3px; font-size: 12px;
+}
+.wt-link:hover { color: var(--ink); }
+.wt-error { color: var(--ink-2); }
+.wt-conflict { display: flex; flex-direction: column; gap: 2px; color: var(--accent); }
+.wt-conflict-hint { color: var(--ink-3); }
+
+/* Composer: "Копия" chip, mirrors the "План" chip (accent when on). */
+.composer-bar .cmp-isolated[aria-pressed="true"],
+.composer-bar .cmp-isolated[aria-pressed="true"]:hover:not(:disabled) {
+  border-color: var(--accent); color: var(--accent); background: var(--accent-soft);
+}
+.cmp-isolated-icon { flex: none; }
+.cmp-isolated-hint { padding: 0 18px 10px; font-size: 11.5px; color: var(--mute); }
+
+/* Sidebar: marker for sessions that run in a copy. */
+.session-fork { display: inline-flex; flex: none; color: var(--ink-3); margin-right: 6px; }

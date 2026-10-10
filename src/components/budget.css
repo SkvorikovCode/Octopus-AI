@@ -1,0 +1,53 @@
+/* Spending limits: the banner above the composer and the limit inputs in Settings. */
+
+.budget-dock {
+  max-width: 720px; width: 100%; margin: 0 auto 10px; padding: 0 12px; box-sizing: border-box;
+}
+.budget-bar {
+  display: flex; align-items: center; gap: 10px; min-height: 36px; padding: 6px 12px;
+  box-sizing: border-box; border-radius: 10px; background: var(--panel);
+  border: 1px solid var(--line-2); font-size: 13px; color: var(--ink-2);
+  -webkit-app-region: no-drag; flex-wrap: wrap;
+}
+.budget-warn .budget-bar { border-color: var(--line-3); }
+.budget-over .budget-bar { border-color: var(--accent); background: var(--accent-soft); color: var(--ink); }
+
+.budget-dots { display: inline-flex; align-items: center; gap: 3px; flex-shrink: 0; }
+.budget-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--dot); }
+.budget-dot.on { background: var(--accent); }
+
+.budget-pct {
+  font-family: var(--mono); font-size: 12px; color: var(--ink-3); flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+.budget-text { flex: 1; min-width: 0; line-height: 1.4; }
+
+.budget-link {
+  flex-shrink: 0; padding: 2px 0; border: 0; background: none; cursor: pointer;
+  font: inherit; font-size: 12px; color: var(--ink-3); text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.budget-link:hover { color: var(--ink); }
+
+.budget-actions { display: flex; gap: 8px; flex-shrink: 0; flex-wrap: wrap; }
+.budget-btn { height: 30px; padding: 0 12px; font-size: 13px; }
+
+/* Settings: the limit input with a "$" prefix */
+.budget-field { display: flex; flex-direction: column; gap: 6px; width: 160px; max-width: 100%; }
+.budget-money {
+  display: flex; align-items: center; width: 100%; height: 36px; box-sizing: border-box;
+  background: var(--bg); border: 1px solid var(--line-2); border-radius: 10px;
+}
+.budget-money:focus-within,
+.budget-money.invalid { border-color: var(--accent); }
+.budget-money-prefix { padding: 0 0 0 12px; font-size: 14px; color: var(--ink-3); }
+.budget-money-input {
+  flex: 1; min-width: 0; height: 100%; padding: 0 12px 0 6px; box-sizing: border-box;
+  background: transparent; border: 0; outline: none; color: var(--ink);
+  font-family: var(--mono); font-size: 14px; font-variant-numeric: tabular-nums;
+}
+.budget-money-input::placeholder { color: var(--dim); }
+
+@media (max-width: 560px) {
+  .budget-field { width: 100%; }
+}

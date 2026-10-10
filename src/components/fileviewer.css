@@ -1,0 +1,196 @@
+/* FileViewer: right-side drawer with a read-only, line-numbered code view. */
+
+.fv-root.card {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  bottom: 12px;
+  width: min(820px, 72vw);
+  z-index: 11;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.fv-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 14px 12px 18px;
+  border-bottom: 1px solid var(--line);
+  flex-shrink: 0;
+}
+
+.fv-title {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.fv-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Ellipsis at the start of the path: the text is laid out right-to-left and
+   wrapped in <bdi> so the path itself keeps its left-to-right order. */
+.fv-dir {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--mute);
+  direction: rtl;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.fv-root .fv-meta {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-3);
+  border: 1px solid var(--line-2);
+  border-radius: 999px;
+  padding: 2px 10px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.fv-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.fv-root .fv-btn {
+  height: 30px;
+  padding: 0 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  color: var(--ink-2);
+  flex-shrink: 0;
+}
+
+.fv-root .fv-btn.is-done {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.fv-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.fv-banner {
+  flex-shrink: 0;
+  margin: 12px 16px 0;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px dashed var(--line-3);
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--mute);
+}
+
+.fv-center {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--mute);
+}
+
+.fv-errwrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 16px;
+}
+
+.fv-errwrap .err-card {
+  width: 100%;
+  font-family: var(--mono);
+  font-size: 12px;
+  word-break: break-word;
+}
+
+.fv-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  background: var(--bg);
+  border-radius: 0 0 18px 18px;
+  padding: 8px 0 12px;
+  overscroll-behavior: contain;
+}
+
+.fv-lines {
+  display: flex;
+  flex-direction: column;
+  min-width: 100%;
+  width: max-content;
+  font-family: var(--mono);
+  tab-size: 4;
+}
+
+.fv-row {
+  display: flex;
+  align-items: flex-start;
+  line-height: 20px;
+}
+
+.fv-row.hl {
+  background: var(--accent-soft);
+  box-shadow: inset 2px 0 0 var(--accent);
+}
+
+.fv-ln {
+  flex-shrink: 0;
+  box-sizing: border-box;
+  padding: 0 12px 0 16px;
+  text-align: right;
+  font-family: var(--mono);
+  font-size: 11px;
+  line-height: 20px;
+  color: var(--dim);
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.fv-row.hl .fv-ln {
+  color: var(--ink-3);
+}
+
+.fv-code {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--ink-2);
+  white-space: pre;
+  padding-right: 24px;
+  user-select: text;
+}
+
+/* Syntax tint */
+.fv-c { color: var(--mute); }
+.fv-s { color: var(--syn-str); }
+.fv-k { color: var(--ink); font-weight: 600; }

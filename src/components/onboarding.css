@@ -1,0 +1,241 @@
+/* First-run onboarding. All classes prefixed with .onb- */
+
+.onb-root {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+/* margin:auto centers vertically without clipping overflowing content */
+.onb-content {
+  margin: auto;
+  width: 100%;
+  max-width: 560px;
+  box-sizing: border-box;
+  padding: 40px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 32px;
+}
+
+.onb-head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  text-align: center;
+}
+
+.onb-title {
+  margin: 0;
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  color: var(--ink);
+}
+
+.onb-lead {
+  margin: 0;
+  max-width: 420px;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--ink-3);
+}
+
+/* Steps */
+
+.onb-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.onb-li { min-width: 0; }
+
+.onb-step {
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  animation: onb-in 0.5s ease both;
+  animation-delay: calc(var(--i, 0) * 90ms + 80ms);
+  transition: opacity 0.2s, border-color 0.2s;
+}
+
+.onb-step[data-locked="true"] { opacity: 0.5; }
+
+.onb-step[data-warn="true"] {
+  border-style: dashed;
+  border-color: var(--accent);
+}
+
+.onb-step-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+}
+
+.onb-n { color: var(--mute); }
+
+.onb-label {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.onb-mark {
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+/* Done: the dotted accent ring keeps turning, the check draws itself in. */
+.onb-mark-done .onb-ring {
+  transform-origin: 11px 11px;
+  animation: onb-spin 6s linear infinite;
+}
+.onb-mark-done .onb-check {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: onb-draw 0.45s ease-out 0.15s forwards;
+}
+@keyframes onb-spin {
+  to { transform: rotate(360deg); }
+}
+@keyframes onb-draw {
+  to { stroke-dashoffset: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .onb-mark-done .onb-ring { animation: none; }
+  .onb-mark-done .onb-check { animation: none; stroke-dashoffset: 0; }
+}
+
+.onb-step-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+.onb-status {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+
+.onb-step[data-locked="true"] .onb-status { color: var(--mute); font-weight: 400; }
+
+.onb-detail {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--ink-3);
+}
+
+.onb-path {
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--mute);
+  overflow-wrap: anywhere;
+}
+
+.onb-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.onb-actions .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.onb-link { font-size: 13px; }
+
+/* Footer: suggestions and start / skip */
+
+.onb-foot {
+  width: 100%;
+  min-height: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+.onb-foot > * { animation: onb-in 0.45s ease both; }
+
+.onb-chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+.onb-chip {
+  height: 36px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid var(--line-2);
+  background: var(--panel);
+  color: var(--ink-2);
+  font-size: 13px;
+  line-height: 1;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.onb-chip:hover {
+  border-color: var(--dim);
+  color: var(--ink);
+}
+
+.onb-start { min-width: 160px; }
+
+.onb-skip {
+  padding: 8px 12px;
+  font-size: 13px;
+  color: var(--mute);
+}
+
+.onb-skip:hover { color: var(--ink); }
+
+/* Motion */
+
+@keyframes onb-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .onb-step, .onb-foot > * { animation: none; }
+}
+
+/* Narrow windows: single column, 16px gutters */
+
+@media (max-width: 520px) {
+  .onb-content { padding: 28px 16px; gap: 24px; }
+  .onb-title { font-size: 26px; }
+  .onb-step { padding: 16px; }
+  .onb-start { width: 100%; }
+}

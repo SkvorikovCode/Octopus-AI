@@ -1,0 +1,309 @@
+/* Composer controls (.ctl-) and subagent transcript drawer (.trn-). */
+
+/* ---------- pickers ---------- */
+
+.ctl-wrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.ctl-pill {
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 10px;
+  border: 1px solid var(--line-2);
+  font-size: 13px;
+  color: var(--ink-2);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+.ctl-pill:hover:not(:disabled),
+.ctl-pill[aria-expanded="true"] {
+  border-color: var(--line-3);
+  color: var(--ink);
+}
+
+.ctl-pill-value {
+  color: var(--ink);
+}
+
+.ctl-dots {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+.ctl-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--dot);
+}
+.ctl-dot.on {
+  background: var(--accent);
+}
+
+.ctl-pop {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 0;
+  width: 380px;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px;
+  background: var(--panel);
+  border: 1px solid var(--line-2);
+  border-radius: 14px;
+  box-shadow: var(--shadow-pop);
+}
+
+.ctl-opt {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  text-align: left;
+  color: var(--ink);
+}
+.ctl-opt:hover {
+  background: var(--raise);
+}
+.ctl-opt[aria-checked="true"] {
+  background: var(--panel-2);
+}
+.ctl-opt:focus-visible {
+  outline-offset: -2px;
+}
+
+.ctl-opt-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.ctl-opt-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  line-height: 20px;
+  font-size: 14px;
+  font-weight: 500;
+}
+.ctl-opt-desc {
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--mute);
+}
+.ctl-opt-desc.warn {
+  color: var(--accent);
+}
+
+.ctl-badge {
+  flex-shrink: 0;
+  white-space: nowrap;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 16px;
+  padding: 0 6px;
+  border-radius: 6px;
+  border: 1px solid var(--line-3);
+  color: var(--ink-3);
+}
+
+.ctl-check {
+  flex-shrink: 0;
+  align-self: center;
+  display: grid;
+  place-items: center;
+  color: var(--accent);
+}
+
+/* ---------- transcript drawer ---------- */
+
+.trn {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  bottom: 12px;
+  width: min(620px, 60vw);
+  z-index: 9;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.trn-head {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 12px 12px 18px;
+  border-bottom: 1px solid var(--line);
+}
+
+.trn-title {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  font: 600 15px/1.3 var(--ui);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.trn-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 16px 18px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.trn-state {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--mute);
+}
+
+.trn-empty {
+  margin: auto;
+  font-size: 13px;
+  color: var(--mute);
+}
+
+.trn-task {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.trn-task-body {
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--ink-2);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.trn-assistant {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.trn-text {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--ink);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.trn-think {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.trn-think-toggle {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--mute);
+}
+.trn-think-toggle:hover {
+  color: var(--ink-3);
+}
+.trn-think-body {
+  max-height: 240px;
+  overflow-y: auto;
+  padding-left: 12px;
+  border-left: 2px solid var(--line-3);
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--dim);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.trn-tool {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--ink-2);
+}
+.trn-arrow {
+  flex-shrink: 0;
+  color: var(--mute);
+}
+.trn-tool-name {
+  flex-shrink: 0;
+  color: var(--ink);
+}
+.trn-tool-args {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--mute);
+}
+
+.trn-result-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.trn-result-name {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--mute);
+}
+.trn-result {
+  margin: 0;
+  max-height: 160px;
+  overflow: auto;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: var(--panel-2);
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--ink-3);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.trn-result.is-error {
+  border-left: 2px solid var(--accent);
+}
+
+.trn-other {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* Keep the dot meter on the title's first line when the option wraps. */
+.ctl-opt > .ctl-dots { margin-top: 7px; flex-shrink: 0; }
+.ctl-opt-name { white-space: nowrap; }

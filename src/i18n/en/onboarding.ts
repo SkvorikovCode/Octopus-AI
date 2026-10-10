@@ -1,0 +1,30 @@
+// English for Russian source strings (see src/lib/i18n.ts). Key: exact Russian text.
+const en: Record<string, string> = {
+  "Добро пожаловать в Octopus": "Welcome to Octopus",
+  "Три шага — и агент начнёт работать в вашем проекте.": "Three steps and the agent starts working in your project.",
+  "Агент": "Agent",
+  "Агент установлен": "Agent installed",
+  "Проверяем…": "Checking…",
+  "Агент не найден": "Agent not found",
+  "Установите движок агента и нажмите «Проверить снова».": "Install the agent engine, then press «Check again».",
+  "Проверить снова": "Check again",
+  "Модель": "Model",
+  "Сначала проверим агента": "Check the agent first",
+  "Доступно: {models}": "Available: {models}",
+  "модель|модели|моделей": "model|models",
+  "Загружаем список моделей…": "Loading the model list…",
+  "Нет доступных моделей": "No models available",
+  "Подключить провайдера": "Connect a provider",
+  "Папка проекта": "Project folder",
+  "Выбрать папку": "Choose folder",
+  "Другая папка": "Another folder",
+  "Агент читает и меняет файлы только в этой папке.": "The agent reads and changes files only in this folder.",
+  "Попробуйте для начала:": "Try first:",
+  "Объясни, как устроен проект": "Explain how this project works",
+  "Найди и почини падающие тесты": "Find and fix failing tests",
+  "Добавь README с описанием проекта": "Add a README describing the project",
+  "Начать": "Start",
+  "Пропустить": "Skip",
+};
+
+export default en;

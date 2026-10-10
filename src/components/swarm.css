@@ -1,0 +1,399 @@
+/* Swarm screen: dark dashboard of rounded tiles. All classes use the .swarm- prefix. */
+
+.swarm {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1;
+  color: var(--ink);
+}
+
+/* Top bar */
+
+.swarm-top {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 24px;
+  border-bottom: 1px solid var(--line);
+}
+
+.swarm-back {
+  flex-shrink: 0;
+}
+
+.swarm-title {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  font: 600 16px/1.2 var(--ui);
+}
+
+.swarm-live-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+  color: var(--mute);
+}
+
+/* Scroll area */
+
+.swarm .swarm-scroll {
+  display: flex;
+  flex-direction: column;
+  padding: 20px 24px 32px;
+}
+
+.swarm-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 14px;
+  container-type: inline-size;
+}
+
+/* Two-column tiles fall back to a full row when only one column fits. */
+.swarm-span2 {
+  grid-column: span 2;
+}
+
+@container (max-width: 540px) {
+  .swarm-span2 {
+    grid-column: 1 / -1;
+  }
+}
+
+/* Tile base */
+
+.swarm-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+  padding: 16px 18px;
+}
+
+.swarm-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+}
+
+.swarm-idx {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--ink-3);
+}
+
+.swarm-status {
+  flex-shrink: 0;
+}
+
+.swarm-muted {
+  margin: 0;
+  font-size: 13px;
+  color: var(--mute);
+}
+
+/* Goal tile */
+
+.swarm-goal-text {
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+
+.swarm-goal-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.swarm-big {
+  font-size: 64px;
+  line-height: 0.9;
+  white-space: nowrap;
+  color: var(--ink);
+}
+
+.swarm-big-dim {
+  color: var(--dim);
+}
+
+.swarm-summary {
+  margin: 0;
+  font-size: 12px;
+  color: var(--mute);
+}
+
+.swarm-bar {
+  display: block;
+  overflow: visible;
+}
+
+.swarm .swarm-stop {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.swarm .swarm-stop:hover:not(:disabled) {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  filter: none;
+}
+
+.swarm .swarm-stop:disabled {
+  opacity: 0.45;
+  border-color: var(--line-3);
+  color: var(--dim);
+  cursor: default;
+}
+
+/* Agent tile states */
+
+.swarm-tile.is-running {
+  border-color: color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+.swarm-tile.is-running .swarm-status {
+  color: var(--accent);
+}
+
+.swarm-tile.is-completed {
+  color: var(--mute);
+}
+
+.swarm-tile.is-completed .swarm-task,
+.swarm-tile.is-completed .swarm-idx {
+  color: var(--mute);
+}
+
+.swarm-tile.is-failed {
+  border: 1px dashed var(--accent);
+}
+
+.swarm-tile.is-failed .swarm-status {
+  color: var(--accent);
+}
+
+.swarm-tile.is-pending {
+  background: var(--panel-2);
+  border: 1px dashed var(--line-3);
+  box-shadow: none;
+}
+
+.swarm-tile.is-pending .swarm-status {
+  color: var(--dim);
+}
+
+/* Running art */
+
+.swarm-running {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.swarm-doto {
+  font-size: 34px;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  color: var(--ink);
+}
+
+.swarm-caret {
+  color: var(--accent);
+  animation: blink 1s steps(1) infinite;
+}
+
+.swarm-tool {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  font-size: 12px;
+  color: var(--ink-3);
+}
+
+.swarm-tool span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Static art (completed, failed, aborted, pending) */
+
+.swarm-art {
+  display: flex;
+  align-items: center;
+  min-height: 56px;
+}
+
+.swarm-art-fail {
+  color: var(--accent);
+}
+
+.swarm-art-stop {
+  color: var(--mute);
+}
+
+/* Task text and stats */
+
+.swarm-task {
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: 2.9em;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--ink-2);
+}
+
+.swarm-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: auto 0 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--line-2);
+}
+
+.swarm-stats > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.swarm-stats dt,
+.swarm-stats dd {
+  margin: 0;
+}
+
+.swarm-stats dd {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--ink);
+}
+
+/* Tokens tile */
+
+.swarm-big-num {
+  font-size: 44px;
+  font-weight: 900;
+  line-height: 1;
+  color: var(--ink);
+}
+
+.swarm-cost {
+  margin-top: auto;
+  font-size: 12px;
+  color: var(--mute);
+}
+
+/* Log tile */
+
+.swarm-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--accent);
+}
+
+.swarm-log-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.swarm-log-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 9em) minmax(0, 1fr);
+  align-items: baseline;
+  gap: 12px;
+  font-size: 12px;
+  color: var(--ink-2);
+}
+
+.swarm-log-time,
+.swarm-log-agent {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--mute);
+}
+
+.swarm-log-agent {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.swarm-log-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Empty state */
+
+.swarm-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 32px 16px;
+  text-align: center;
+}
+
+.swarm-empty h2 {
+  margin: 8px 0 0;
+  font: 600 20px/1.2 var(--ui);
+}
+
+.swarm-empty p {
+  max-width: 46ch;
+  margin: 0;
+  color: var(--ink-3);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .swarm-caret,
+  .swarm .pulse {
+    animation: none;
+  }
+}
+
+.swarm-open {
+  align-self: flex-start; height: 28px; padding: 0 10px; border-radius: 999px;
+  border: 1px solid var(--line-2); font-size: 12px; color: var(--ink-3);
+}
+.swarm-open:hover { border-color: var(--dim); color: var(--ink); }

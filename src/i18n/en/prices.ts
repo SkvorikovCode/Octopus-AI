@@ -1,0 +1,33 @@
+// English for Russian source strings (see src/lib/i18n.ts). Key: exact Russian text.
+const en: Record<string, string> = {
+  "Провайдер не найден": "Provider not found",
+  "Модель не найдена": "Model not found",
+  "Порог длинного контекста должен быть от 1 до 10000000": "Long-context threshold must be from 1 to 10000000",
+  "Цены должны быть числами от 0 до 10000": "Prices must be numbers from 0 to 10000",
+  "ЦЕНЫ МОДЕЛЕЙ": "MODEL PRICES",
+  "Цена за 1 млн токенов, USD. По ним считаются статистика и бюджет.": "Price per 1M tokens, USD. Used for statistics and budget.",
+  "Новые цены применятся после перезапуска агента и только к новым запросам": "New prices apply after the agent restarts, and only to new requests",
+  "Список моделей появится, когда агент запустится.": "The model list appears when the agent starts.",
+  "Вход": "Input",
+  "Выход": "Output",
+  "Кэш: чтение": "Cache read",
+  "Кэш: запись": "Cache write",
+  "Чтение кэша": "Cache read",
+  "Запись кэша": "Cache write",
+  "Траты моделей без цены не учитываются ни в статистике, ни в бюджете.": "Spending on models without a price is not counted in statistics or budget.",
+  "Цены встроенных провайдеров берутся из каталога": "Built-in provider prices come from the catalog",
+  "своя": "custom",
+  "бесплатно": "free",
+  "из каталога": "catalog",
+  "нет цены": "no price",
+  "дороже после {n}K": "higher after {n}K",
+  "Дороже на длинном контексте": "Higher price for long context",
+  "После, токенов": "After, tokens",
+  "Введите число от 0 до 10 000": "Enter a number from 0 to 10,000",
+  "Введите целое число токенов больше 0": "Enter a whole number of tokens greater than 0",
+  "Вернуть цену из каталога": "Use catalog price",
+  "Бесплатно": "Free",
+  "Сохраняем…": "Saving…",
+};
+
+export default en;
