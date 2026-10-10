@@ -5,6 +5,7 @@ const en: Record<string, string> = {
   "В день": "Per day",
   "На сессию": "Per session",
   "Предупредим на 80%, на 100% новые задачи остановятся до подтверждения": "We warn at 80%; at 100% new tasks stop until you confirm",
+  "Запросы по подпискам в лимиты не входят: они уже оплачены тарифом.": "Requests covered by a subscription don't count toward the limits: your plan already pays for them.",
   "Сегодня потрачено: {cost}": "Spent today: {cost}",
   "Введите сумму больше 0 и не больше 10 000": "Enter an amount above 0 and up to 10,000",
   "Лимит в день, USD": "Daily limit, USD",

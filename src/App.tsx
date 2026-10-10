@@ -42,7 +42,8 @@ import { CommitModal } from "./components/CommitModal";
 import { WorktreeBar } from "./components/WorktreeBar";
 import { TerminalPanel } from "./components/TerminalPanel";
 import { BudgetBanner } from "./components/BudgetBanner";
-import { allowOverSession, allowOverToday, budgetState, isOverAllowed, todaySpend } from "./lib/budget";
+import { allowOverSession, allowOverToday, budgetState, isOverAllowed, setFlatRateProviders, spendToday, type Spend } from "./lib/budget";
+import { flatRateProviders } from "./lib/subscriptions";
 import { applyWorktree, createWorktree, listWorktrees, removeWorktree } from "./lib/worktrees";
 import type { Subagent } from "./lib/swarm";
 import { listSessions, type SessionMeta } from "./lib/sessions";
@@ -118,7 +119,10 @@ export default function App() {
     }
   });
   /** Money spent today across all projects (for the daily budget). */
-  const [daySpent, setDaySpent] = useState(0);
+  const [spend, setSpend] = useState<Spend>({ day: 0, subscriptionBySession: {} });
+  const refreshSpend = useCallback(() => {
+    spendToday().then(setSpend).catch(() => {});
+  }, []);
   const [budgetVersion, bumpBudget] = useReducer((n: number) => n + 1, 0);
   /** Session id → branch, for sessions that live in a worktree copy. */
   const [worktreeOf, setWorktreeOf] = useState<ReadonlyMap<string, string>>(new Map());
@@ -229,6 +233,11 @@ export default function App() {
           rt.dispatch({ type: "status", status: "idle" });
           client.request({ type: "negotiate_protocol", protocolVersion: 2 }).catch(() => {});
           client.request({ type: "set_subagent_subscription", level: "progress" }).catch(() => {});
+          // Requests covered by a subscription stay out of the budget.
+          flatRateProviders((cmd) => client.request(cmd)).then((ids) => {
+            setFlatRateProviders(ids);
+            refreshSpend();
+          });
           client.request<{ commands: any[] }>({ type: "get_available_commands" })
             .then((d) => setCommands(toCommands(d?.commands ?? [])))
             .catch(() => {});
@@ -268,7 +277,7 @@ export default function App() {
           const text = (Array.isArray(last?.content) ? last.content : []).filter((c: any) => c?.type === "text").map((c: any) => c.text).join(" ").trim();
           notifyIfAway(t("Octopus закончил"), text || t("Задача выполнена"));
           if (rt.snap.plan === "planning") rt.setPlan("ready");
-          todaySpend().then(setDaySpent).catch(() => {});
+          refreshSpend();
           if (!isActive()) rt.setUnread(true);
           refresh(rt);
           refreshChanges();
@@ -419,11 +428,14 @@ export default function App() {
 
   const busy = s.status === "working" || s.status === "thinking" || s.status === "waiting";
   useEffect(() => {
-    todaySpend().then(setDaySpent).catch(() => {});
-  }, []);
+    refreshSpend();
+  }, [refreshSpend]);
+  const sessionPath = sessions.find((m) => m.id === s.sessionId)?.path;
+  // Session cost comes from the engine; the part covered by a subscription is taken out.
+  const sessionSpent = Math.max(0, (s.stats?.cost ?? 0) - (sessionPath ? spend.subscriptionBySession[sessionPath] ?? 0 : 0));
   const budget = useMemo(
-    () => budgetState({ daySpent, sessionSpent: s.stats?.cost ?? 0, daily: settings.budgetDaily, session: settings.budgetSession }),
-    [daySpent, s.stats?.cost, settings.budgetDaily, settings.budgetSession, budgetVersion],
+    () => budgetState({ daySpent: spend.day, sessionSpent, daily: settings.budgetDaily, session: settings.budgetSession }),
+    [spend.day, sessionSpent, settings.budgetDaily, settings.budgetSession, budgetVersion],
   );
   /** Limit reached and not overridden: new tasks wait for the user's OK. */
   const budgetBlocked = budget.level === "over" && !isOverAllowed(budget.scope!, s.sessionId);

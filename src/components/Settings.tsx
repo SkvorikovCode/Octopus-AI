@@ -602,7 +602,7 @@ function BudgetSection(): ReactElement {
   const hint = t("Предупредим на 80%, на 100% новые задачи остановятся до подтверждения");
 
   return (
-    <Section title={t("БЮДЖЕТ")}>
+    <Section title={t("БЮДЖЕТ")} desc={t("Запросы по подпискам в лимиты не входят: они уже оплачены тарифом.")}>
       <Row label={t("В день")} hint={hint}>
         <LimitInput
           label={t("Лимит в день, USD")}

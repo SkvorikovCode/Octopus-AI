@@ -7,7 +7,7 @@
 //! days, optionally limited to sessions started in one project directory.
 
 use std::cmp::Ordering;
-use std::collections::HashMap;
+use std::collections::{BTreeMap, HashMap};
 use std::fs::{self, File};
 use std::io::{BufRead, BufReader};
 use std::path::{Path, PathBuf};
@@ -59,6 +59,8 @@ pub struct SessionStat {
     pub requests: u32,
     /// Timestamp of the latest counted request, epoch milliseconds.
     pub last_at: u64,
+    /// Cost split by provider id (requests whose provider is unknown are left out).
+    pub cost_by_provider: BTreeMap<String, f64>,
 }
 
 /// Aggregated statistics returned to the frontend.
@@ -212,6 +214,7 @@ fn collect(root: &Path, days: u32, cwd: Option<&str>, now_ms: i64, offset_secs: 
             cost: agg.total.cost,
             requests: agg.total.requests,
             last_at: agg.last_ms.max(0) as u64,
+            cost_by_provider: cost_by_provider(&agg.models),
         });
     }
 
@@ -407,6 +410,18 @@ fn normalize_path(raw: &str) -> String {
         return format!("/private{trimmed}");
     }
     trimmed.to_string()
+}
+
+/// Sums model costs per provider. Keys are `provider/model` (see `model_key`);
+/// a key without a slash names only one of them, so it can't be attributed.
+fn cost_by_provider(models: &HashMap<String, ModelAcc>) -> BTreeMap<String, f64> {
+    let mut out = BTreeMap::new();
+    for (key, m) in models {
+        if let Some((provider, _)) = key.split_once('/') {
+            *out.entry(provider.to_string()).or_insert(0.0) += m.acc.cost;
+        }
+    }
+    out
 }
 
 fn model_key(message: &Value) -> String {
@@ -660,6 +675,24 @@ this line is not json
     }
 
     #[test]
+    fn splits_session_cost_by_provider() {
+        let mut models = HashMap::new();
+        let mut acc = |key: &str, cost: f64| {
+            let mut m = ModelAcc::default();
+            m.acc.cost = cost;
+            models.insert(key.to_string(), m);
+        };
+        acc("openai-codex/gpt-5.6-terra", 0.4);
+        acc("openai-codex/gpt-6-luna", 0.1);
+        acc("openrouter/anthropic/claude-sonnet", 0.3);
+        acc("gpt-6-luna", 9.0);
+        let split = cost_by_provider(&models);
+        assert_eq!(split.len(), 2);
+        assert!(approx(split["openai-codex"], 0.5));
+        assert!(approx(split["openrouter"], 0.3));
+    }
+
+    #[test]
     fn parses_iso_timestamps() {
         let base = days_from_civil(2026, 10, 10) * DAY_MS + (15 * 3600 + 21 * 60 + 37) * 1000;
         assert_eq!(parse_iso_ms("2026-10-10T15:21:37.112Z"), Some(base + 112));
@@ -746,6 +779,8 @@ this line is not json
         let s0 = &stats.sessions[0];
         assert!(s0.path.ends_with("s1.jsonl"));
         assert_eq!(s0.title, "Новое имя");
+        assert_eq!(s0.cost_by_provider.len(), 1);
+        assert!(approx(s0.cost_by_provider["wikivibe"], 0.7));
         assert_eq!(s0.cwd, "/work/a");
         assert_eq!(s0.tokens, 150);
         assert_eq!(s0.requests, 3);

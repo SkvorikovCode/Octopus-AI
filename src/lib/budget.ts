@@ -1,6 +1,6 @@
 // Spending limits: pure state logic, today's spend, and "continue anyway" overrides.
 
-import { loadUsage } from "./stats";
+import { loadUsage, type UsageStats } from "./stats";
 
 export type BudgetState = {
   level: "ok" | "warn" | "over";
@@ -57,13 +57,49 @@ export function budgetState(opts: {
   return { level: worst.level, scope: worst.scope, spent: worst.spent, limit: worst.limit };
 }
 
+export type Spend = {
+  /** Last day's spend across all projects, without flat-rate subscription requests. */
+  day: number;
+  /** Per session file path: the part of its last day's cost covered by subscriptions. */
+  subscriptionBySession: Record<string, number>;
+};
+
+const providerOf = (model: string) =>
+  model.includes("/") ? model.slice(0, model.indexOf("/")) : "";
+
+/** Splits usage into what the budget counts. `flat`: provider ids on a flat-rate plan. */
+export function paidSpend(usage: UsageStats, flat: ReadonlySet<string>): Spend {
+  const covered = (usage.models ?? []).filter((m) => flat.has(providerOf(m.model))).reduce((sum, m) => sum + m.cost, 0);
+  const subscriptionBySession: Record<string, number> = {};
+  for (const s of usage.sessions ?? []) {
+    const part = Object.entries(s.costByProvider ?? {})
+      .filter(([provider]) => flat.has(provider))
+      .reduce((sum, [, cost]) => sum + cost, 0);
+    if (part > 0) subscriptionBySession[s.path] = part;
+  }
+  return { day: Math.max(0, usage.totalCost - covered), subscriptionBySession };
+}
+
+// Providers on a flat-rate subscription, reported by the running agent.
+let flatRate: ReadonlySet<string> = new Set();
+
+/** Remembers which providers' requests a subscription covers (they stay out of the budget). */
+export function setFlatRateProviders(ids: ReadonlySet<string>): void {
+  flatRate = ids;
+}
+
+/** Budget spend for the last day. Errors count as nothing spent. */
+export async function spendToday(flat: ReadonlySet<string> = flatRate): Promise<Spend> {
+  try {
+    return paidSpend(await loadUsage(1), flat);
+  } catch {
+    return { day: 0, subscriptionBySession: {} };
+  }
+}
+
 /** Total spend for the last day across all projects. Errors count as 0. */
 export async function todaySpend(): Promise<number> {
-  try {
-    return (await loadUsage(1)).totalCost;
-  } catch {
-    return 0;
-  }
+  return (await spendToday()).day;
 }
 
 /**

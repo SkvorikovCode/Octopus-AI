@@ -25,6 +25,10 @@ export type SubscriptionDef = {
   pasteRequired?: boolean;
   /** Same account, signed in with a device code instead of the browser. */
   deviceAlt?: string;
+  /** Billed per request even when signed in (the sign-in only fetches a key). */
+  metered?: boolean;
+  /** Provider id its models run under, when it differs from `id`. */
+  billingId?: string;
 };
 
 /** Curated list in display order. Providers the engine doesn't report are hidden. */
@@ -52,14 +56,26 @@ export const SUBSCRIPTIONS: SubscriptionDef[] = [
   { id: "cursor", name: "Cursor", method: "browser" },
   { id: "xai-oauth", name: "Grok", method: "device", note: "SuperGrok или X Premium+" },
   { id: "kimi-code", name: "Kimi Code", method: "device" },
-  { id: "zai-coding-plan", name: "Z.ai GLM Coding Plan", method: "browser", pasteRequired: true },
+  {
+    id: "zai-coding-plan",
+    name: "Z.ai GLM Coding Plan",
+    method: "browser",
+    pasteRequired: true,
+    billingId: "zai",
+  },
   { id: "gitlab-duo", name: "GitLab Duo", method: "browser" },
   { id: "gitlab-duo-agent", name: "GitLab Duo Agent", method: "browser", pasteRequired: true },
   { id: "devin", name: "Devin", method: "browser" },
   { id: "factory-droid", name: "Factory Droid", method: "device" },
   { id: "muse-code", name: "Muse Code", method: "device" },
-  { id: "kilo", name: "Kilo Gateway", method: "device" },
-  { id: "openrouter", name: "OpenRouter", method: "browser", note: "Вход вместо API-ключа" },
+  { id: "kilo", name: "Kilo Gateway", method: "device", metered: true },
+  {
+    id: "openrouter",
+    name: "OpenRouter",
+    method: "browser",
+    note: "Вход вместо API-ключа",
+    metered: true,
+  },
   { id: "perplexity", name: "Perplexity Pro / Max", method: "terminal" },
   { id: "alibaba-coding-plan", name: "Alibaba Coding Plan", method: "terminal" },
   { id: "alibaba-token-plan", name: "QwenCloud Token Plan", method: "terminal" },
@@ -95,6 +111,37 @@ export function mergeCatalog(engine: EngineLoginProvider[]): Subscription[] {
       def.deviceAlt && byId.get(def.deviceAlt)?.available ? def.deviceAlt : undefined;
     return [{ ...def, deviceAlt, authenticated: p.authenticated }];
   });
+}
+
+type Request = <T>(command: Record<string, unknown>) => Promise<T>;
+
+/**
+ * Providers whose requests are covered by a flat-rate plan: signed in with an
+ * OAuth account (not an API key) to a subscription that isn't billed per
+ * request. Their costs come from catalog prices and must stay out of the budget.
+ * `request` is any running agent's RPC; failures give an empty set.
+ */
+export async function flatRateProviders(request: Request): Promise<Set<string>> {
+  try {
+    const data = await request<{ providers?: EngineLoginProvider[] }>({
+      type: "get_login_providers",
+    });
+    const signedIn = mergeCatalog(data?.providers ?? []).filter(
+      (s) => s.authenticated && !s.metered,
+    );
+    const ids = await Promise.all(
+      signedIn.map(async (s) => {
+        const res = await request<{ accounts?: Account[] }>({
+          type: "get_logout_accounts",
+          providerId: s.id,
+        }).catch(() => undefined);
+        return res?.accounts?.some((a) => a.type === "oauth") ? (s.billingId ?? s.id) : undefined;
+      }),
+    );
+    return new Set(ids.filter((id): id is string => !!id));
+  } catch {
+    return new Set();
+  }
 }
 
 /** Code the user types on the provider's page ("Enter code: ABCD-1234"). */

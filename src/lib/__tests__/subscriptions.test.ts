@@ -9,6 +9,7 @@ vi.mock("@tauri-apps/api/event", () => ({ listen: vi.fn() }));
 import {
   createLoginAgent,
   deviceCode,
+  flatRateProviders,
   loginEvent,
   mergeCatalog,
   SUBSCRIPTIONS,
@@ -108,5 +109,45 @@ describe("demo login agent", () => {
     const [account] = await agent.accounts("zai-coding-plan");
     await agent.logout("zai-coding-plan", account.credentialId);
     expect(await agent.accounts("zai-coding-plan")).toEqual([]);
+  });
+});
+
+describe("flatRateProviders", () => {
+  const rpc =
+    (providers: unknown[], accounts: Record<string, { type: string }[]>) =>
+    async <T>(cmd: Record<string, unknown>): Promise<T> => {
+      if (cmd.type === "get_login_providers") return { providers } as T;
+      if (cmd.type === "get_logout_accounts")
+        return { accounts: accounts[cmd.providerId as string] ?? [] } as T;
+      throw new Error("unexpected");
+    };
+
+  it("keeps OAuth sign-ins to flat-rate plans, under their billing id", async () => {
+    const ids = await flatRateProviders(
+      rpc(
+        [
+          engine("openai-codex", true),
+          engine("anthropic", true),
+          engine("openrouter", true),
+          engine("zai-coding-plan", true),
+          engine("cursor", false),
+        ],
+        {
+          "openai-codex": [{ type: "oauth" }],
+          anthropic: [{ type: "api_key" }],
+          openrouter: [{ type: "oauth" }],
+          "zai-coding-plan": [{ type: "oauth" }],
+        },
+      ),
+    );
+    expect([...ids].sort()).toEqual(["openai-codex", "zai"]);
+  });
+
+  it("gives an empty set when the agent can't answer", async () => {
+    const failing = async <T>(): Promise<T> => {
+      throw new Error("offline");
+    };
+    expect((await flatRateProviders(failing)).size).toBe(0);
+    expect((await flatRateProviders(async <T>() => undefined as T)).size).toBe(0);
   });
 });
