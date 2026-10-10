@@ -27,3 +27,7 @@ dist-ssr
 .env
 .env.*
 .claude/
+
+# Agent engine fetched for release builds (see scripts/fetch-engine.sh)
+src-tauri/binaries/
+src-tauri/engine-licenses/

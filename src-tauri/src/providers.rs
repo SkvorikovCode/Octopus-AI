@@ -540,29 +540,33 @@ fn parse_model_ids(json: &JsonValue) -> Option<Vec<String>> {
 fn discover(base_url: &str, api: &str, api_key: &str) -> Result<Vec<String>, String> {
     validate_base_url(base_url)?;
     let url = format!("{}/models", base_url.trim().trim_end_matches('/'));
-    let agent = ureq::AgentBuilder::new()
-        .timeout(Duration::from_secs(15))
-        .build();
+    // ureq 3 turns 4xx/5xx into errors by default; we want the body of those responses.
+    let agent: ureq::Agent = ureq::Agent::config_builder()
+        .timeout_global(Some(Duration::from_secs(15)))
+        .http_status_as_error(false)
+        .build()
+        .into();
     let mut req = agent.get(&url);
     if api == "anthropic-messages" {
         req = req
-            .set("x-api-key", api_key)
-            .set("anthropic-version", "2023-06-01");
+            .header("x-api-key", api_key)
+            .header("anthropic-version", "2023-06-01");
     } else {
-        req = req.set("Authorization", &format!("Bearer {api_key}"));
+        req = req.header("Authorization", &format!("Bearer {api_key}"));
     }
 
-    let resp = match req.call() {
-        Ok(resp) => resp,
-        Err(ureq::Error::Status(code, resp)) => {
-            let body = resp.into_string().unwrap_or_default();
-            let head: String = body.chars().take(200).collect();
-            return Err(format!("Сервер ответил {code}: {head}"));
-        }
-        Err(e) => return Err(format!("Не удалось подключиться: {e}")),
-    };
+    let mut resp = req
+        .call()
+        .map_err(|e| format!("Не удалось подключиться: {e}"))?;
+    if !resp.status().is_success() {
+        let code = resp.status().as_u16();
+        let body = resp.body_mut().read_to_string().unwrap_or_default();
+        let head: String = body.chars().take(200).collect();
+        return Err(format!("Сервер ответил {code}: {head}"));
+    }
     let json: JsonValue = resp
-        .into_json()
+        .body_mut()
+        .read_json()
         .map_err(|_| "Сервер вернул не список моделей".to_string())?;
     parse_model_ids(&json).ok_or_else(|| "Сервер вернул не список моделей".to_string())
 }
@@ -1059,5 +1063,81 @@ mod tests {
         assert!(doc["providers"]["wikivibe"]["models"][1].get("cost").is_none());
         assert_eq!(doc["providers"]["wikivibe"]["models"][0]["cost"]["input"].as_f64(), Some(2.5));
         assert_eq!(doc["providers"]["other"]["models"][0]["cost"]["input"].as_f64(), Some(9.0));
+    }
+
+    /// Answers one HTTP request on a local port with `response`; returns the base
+    /// URL and a handle that yields the request head the server received.
+    fn serve_once(response: impl AsRef<str> + Send + 'static) -> (String, std::thread::JoinHandle<String>) {
+        use std::io::{Read, Write};
+        let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+        let url = format!("http://{}", listener.local_addr().unwrap());
+        let handle = std::thread::spawn(move || {
+            let (mut stream, _) = listener.accept().unwrap();
+            let mut buf = [0u8; 4096];
+            let n = stream.read(&mut buf).unwrap();
+            stream.write_all(response.as_ref().as_bytes()).unwrap();
+            String::from_utf8_lossy(&buf[..n]).to_lowercase()
+        });
+        (url, handle)
+    }
+
+    fn ok_models() -> String {
+        let body = r#"{"data":[{"id":"m-b"},{"id":"m-a"}]}"#;
+        format!(
+            "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{body}",
+            body.len()
+        )
+    }
+
+    #[test]
+    fn discover_sends_bearer_key_and_parses_models() {
+        let (url, req) = serve_once(ok_models());
+        let ids = discover(&url, "openai-completions", "sk-test").unwrap();
+        assert_eq!(ids, vec!["m-a", "m-b"]);
+        let head = req.join().unwrap();
+        assert!(head.starts_with("get /models "), "{head}");
+        assert!(head.contains("authorization: bearer sk-test"), "{head}");
+    }
+
+    #[test]
+    fn discover_uses_anthropic_headers() {
+        let (url, req) = serve_once(ok_models());
+        discover(&url, "anthropic-messages", "sk-ant").unwrap();
+        let head = req.join().unwrap();
+        assert!(head.contains("x-api-key: sk-ant"), "{head}");
+        assert!(head.contains("anthropic-version: 2023-06-01"), "{head}");
+        assert!(!head.contains("authorization:"), "{head}");
+    }
+
+    #[test]
+    fn discover_reports_status_and_body_of_error_responses() {
+        let (url, req) = serve_once(
+            "HTTP/1.1 401 Unauthorized\r\nContent-Length: 7\r\nConnection: close\r\n\r\nbad key",
+        );
+        let err = discover(&url, "openai-completions", "nope").unwrap_err();
+        req.join().unwrap();
+        assert!(err.contains("401") && err.contains("bad key"), "{err}");
+    }
+
+    #[test]
+    fn discover_rejects_a_non_model_list() {
+        let (url, req) = serve_once(
+            "HTTP/1.1 200 OK\r\nContent-Length: 14\r\nConnection: close\r\n\r\n<html>hi</html>",
+        );
+        let err = discover(&url, "openai-completions", "k").unwrap_err();
+        req.join().unwrap();
+        assert_eq!(err, "Сервер вернул не список моделей");
+    }
+
+    #[test]
+    fn discover_reports_a_refused_connection() {
+        let port = std::net::TcpListener::bind("127.0.0.1:0")
+            .unwrap()
+            .local_addr()
+            .unwrap()
+            .port();
+        let err = discover(&format!("http://127.0.0.1:{port}"), "openai-completions", "k")
+            .unwrap_err();
+        assert!(err.starts_with("Не удалось подключиться"), "{err}");
     }
 }
