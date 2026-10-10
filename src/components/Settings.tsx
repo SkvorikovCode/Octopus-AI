@@ -49,6 +49,8 @@ export type SettingsScreenProps = {
   engineInfo?: { model?: string; project?: string; status: string };
   /** Effective model prices from the running agent. */
   models?: PriceModel[];
+  /** Providers on a flat-rate subscription. */
+  subscriptions?: ReadonlySet<string>;
   onRestartAgent?: () => void;
   /** Open project folder and the user's home folder, for the Инструкции tab. */
   project?: string;
@@ -69,6 +71,7 @@ export function SettingsScreen({
   onOpenProviders,
   engineInfo,
   models,
+  subscriptions,
   onRestartAgent,
   project,
   home,
@@ -284,7 +287,7 @@ export function SettingsScreen({
             )}
           </Section>
 
-          <ModelPrices models={models ?? []} onRestartAgent={onRestartAgent} />
+          <ModelPrices models={models ?? []} subscriptions={subscriptions} onRestartAgent={onRestartAgent} />
           <BudgetSection />
 
                 </>

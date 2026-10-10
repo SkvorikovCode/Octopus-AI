@@ -28,6 +28,9 @@ const en: Record<string, string> = {
   "Вернуть цену из каталога": "Use catalog price",
   "Бесплатно": "Free",
   "Сохраняем…": "Saving…",
+  "по подписке": "subscription",
+  "Оплачено подпиской: цены — оценка по каталогу, в бюджет запросы не входят.": "Covered by your subscription: prices are a catalog estimate, and these requests don't count toward the budget.",
+  "Оплачено подпиской: цена — оценка по каталогу": "Covered by your subscription: the price is a catalog estimate",
 };
 
 export default en;

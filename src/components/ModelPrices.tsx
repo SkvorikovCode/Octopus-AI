@@ -9,13 +9,15 @@ export type PriceModel = { provider: string; id: string; name?: string; cost?: M
 
 type Props = {
   models: PriceModel[];
+  /** Providers on a flat-rate subscription: their prices are only an estimate. */
+  subscriptions?: ReadonlySet<string>;
   onRestartAgent?: () => void;
 };
 
 type Quad = { input: number; output: number; cacheRead: number; cacheWrite: number };
 type PriceField = keyof Quad;
 type Prices = Record<PriceField, string>;
-type Source = "own" | "free" | "catalog" | "none";
+type Source = "own" | "free" | "catalog" | "none" | "plan";
 
 const FIELDS: PriceField[] = ["input", "output", "cacheRead", "cacheWrite"];
 const EMPTY_PRICES: Prices = { input: "", output: "", cacheRead: "", cacheWrite: "" };
@@ -44,6 +46,7 @@ const SOURCE_LABEL: Record<Source, () => string> = {
   free: () => t("бесплатно"),
   catalog: () => t("из каталога"),
   none: () => t("нет цены"),
+  plan: () => t("по подписке"),
 };
 
 /** Up to three decimals, trailing zeros trimmed; "—" when unknown. */
@@ -77,7 +80,9 @@ function toPrices(q: Quad | undefined): Prices {
   return { input: String(q.input), output: String(q.output), cacheRead: String(q.cacheRead), cacheWrite: String(q.cacheWrite) };
 }
 
-export function ModelPrices({ models, onRestartAgent }: Props): ReactElement {
+const NO_SUBSCRIPTIONS: ReadonlySet<string> = new Set();
+
+export function ModelPrices({ models, subscriptions = NO_SUBSCRIPTIONS, onRestartAgent }: Props): ReactElement {
   const titleId = useId();
   // Own providers from the settings file: which models are editable, and their own prices.
   const [own, setOwn] = useState<{ providers: Set<string>; costs: Map<string, ModelCost | undefined> }>();
@@ -113,7 +118,7 @@ export function ModelPrices({ models, onRestartAgent }: Props): ReactElement {
 
   const ownCost = (m: PriceModel): ModelCost | undefined => own?.costs.get(keyOf(m.provider, m.id));
   const isEditable = (m: PriceModel): boolean => own?.providers.has(m.provider) ?? false;
-  const hasUnpriced = models.some((m) => sourceOf(ownCost(m), m.cost) === "none");
+  const hasUnpriced = models.some((m) => !subscriptions.has(m.provider) && sourceOf(ownCost(m), m.cost) === "none");
 
   return (
     <section className="card set-card" aria-labelledby={titleId}>
@@ -165,11 +170,17 @@ export function ModelPrices({ models, onRestartAgent }: Props): ReactElement {
             {groups.map(([provider, list]) => (
               <div className="mp-group" key={provider}>
                 <div className="mp-group-label">{provider}</div>
+                {subscriptions.has(provider) && (
+                  <p className="mp-note mp-plan-note">
+                    {t("Оплачено подпиской: цены — оценка по каталогу, в бюджет запросы не входят.")}
+                  </p>
+                )}
                 {list.map((m) => (
                   <PriceRow
                     key={keyOf(m.provider, m.id)}
                     model={m}
                     own={ownCost(m)}
+                    plan={subscriptions.has(m.provider)}
                     editable={isEditable(m)}
                     onEdit={() => setEditing(m)}
                   />
@@ -203,16 +214,20 @@ export function ModelPrices({ models, onRestartAgent }: Props): ReactElement {
 function PriceRow({
   model,
   own,
+  plan,
   editable,
   onEdit,
 }: {
   model: PriceModel;
   own: ModelCost | undefined;
+  /** Covered by a flat-rate subscription. */
+  plan: boolean;
   editable: boolean;
   onEdit: () => void;
 }): ReactElement {
-  const src = sourceOf(own, model.cost);
-  const shown = src === "none" ? undefined : own ?? model.cost;
+  const priced = sourceOf(own, model.cost);
+  const src: Source = plan ? "plan" : priced;
+  const shown = priced === "none" ? undefined : own ?? model.cost;
   const name = model.name || model.id;
   const tier = shown?.longContext;
   const cells: { label: string; value: number | undefined }[] = [
@@ -224,8 +239,14 @@ function PriceRow({
 
   return (
     <div
-      className={"mp-row " + (editable ? "editable" : "readonly")}
-      title={editable ? undefined : t("Цены встроенных провайдеров берутся из каталога")}
+      className={"mp-row " + (editable ? "editable" : "readonly") + (plan ? " plan" : "")}
+      title={
+        plan
+          ? t("Оплачено подпиской: цена — оценка по каталогу")
+          : editable
+            ? undefined
+            : t("Цены встроенных провайдеров берутся из каталога")
+      }
       onClick={editable ? onEdit : undefined}
     >
       <div className="mp-name">

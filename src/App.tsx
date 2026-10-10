@@ -120,6 +120,8 @@ export default function App() {
   });
   /** Money spent today across all projects (for the daily budget). */
   const [spend, setSpend] = useState<Spend>({ day: 0, subscriptionBySession: {} });
+  /** Providers on a flat-rate subscription (their prices are only an estimate). */
+  const [flatProviders, setFlatProviders] = useState<ReadonlySet<string>>(new Set());
   const refreshSpend = useCallback(() => {
     spendToday().then(setSpend).catch(() => {});
   }, []);
@@ -236,6 +238,7 @@ export default function App() {
           // Requests covered by a subscription stay out of the budget.
           flatRateProviders((cmd) => client.request(cmd)).then((ids) => {
             setFlatRateProviders(ids);
+            setFlatProviders(ids);
             refreshSpend();
           });
           client.request<{ commands: any[] }>({ type: "get_available_commands" })
@@ -960,6 +963,7 @@ export default function App() {
         tab={settingsTab}
         onTabChange={setSettingsTab}
         models={models}
+        subscriptions={flatProviders}
         onRestartAgent={() => {
           const r = rtRef.current;
           if (!project || !r) return;
