@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <a href="README.md">English</a> · <b>Русский</b>
+  <a href="README.md">English</a> · <b>Русский</b> · <a href="https://skvorikovcode.github.io/Octopus-AI/ru/">Сайт</a>
 </p>
 
 # Octopus AI
