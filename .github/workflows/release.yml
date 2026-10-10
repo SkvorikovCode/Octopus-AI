@@ -37,7 +37,7 @@ jobs:
             [ "$v" = "$want" ] || { echo "::error::Version mismatch: tag says $want, files say $tauri / $pkg / $cargo"; exit 1; }
           done
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
