@@ -1,0 +1,70 @@
+name: Release
+
+# Runs only when a version tag is pushed (git tag v0.1.0 && git push origin v0.1.0),
+# never on ordinary commits. It builds the app and attaches it to a DRAFT release;
+# a maintainer reviews the draft and publishes it by hand.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  macos-arm64:
+    name: macOS (Apple Silicon)
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Tag must be on main and match the app version
+        run: |
+          set -euo pipefail
+          git merge-base --is-ancestor "$GITHUB_SHA" origin/main \
+            || { echo "::error::Tag $GITHUB_REF_NAME is not on main"; exit 1; }
+          want="${GITHUB_REF_NAME#v}"
+          tauri=$(jq -r .version src-tauri/tauri.conf.json)
+          pkg=$(jq -r .version package.json)
+          cargo=$(sed -n 's/^version = "\(.*\)"/\1/p' src-tauri/Cargo.toml | head -1)
+          echo "tag=$want tauri.conf=$tauri package.json=$pkg Cargo.toml=$cargo"
+          for v in "$tauri" "$pkg" "$cargo"; do
+            [ "$v" = "$want" ] || { echo "::error::Version mismatch: tag says $want, files say $tauri / $pkg / $cargo"; exit 1; }
+          done
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+      - run: npm ci
+
+      - uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: ${{ github.ref_name }}
+          releaseName: Octopus AI ${{ github.ref_name }}
+          releaseDraft: true
+          # Everything before 1.0 is a preview.
+          prerelease: ${{ startsWith(github.ref_name, 'v0.') }}
+          args: --target aarch64-apple-darwin
+          releaseBody: |
+            **Preview build for Apple Silicon Macs (macOS 11+).** Not signed or notarized yet.
+
+            ### Install
+            1. Install the agent engine: `brew install omp`
+            2. Download the `.dmg` below and drag Octopus into Applications.
+            3. macOS will say the app cannot be opened because the developer cannot be verified. Right-click Octopus, choose **Open**, then **Open** again. Or run `xattr -dr com.apple.quarantine /Applications/Octopus.app`.
+
+            On first launch the app asks for a provider key. Found a problem? [Open an issue](https://github.com/SkvorikovCode/Octopus-AI/issues/new/choose).
