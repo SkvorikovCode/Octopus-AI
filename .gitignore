@@ -26,3 +26,4 @@ dist-ssr
 # Secrets
 .env
 .env.*
+.claude/

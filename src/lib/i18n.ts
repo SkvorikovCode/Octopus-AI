@@ -36,7 +36,7 @@ function fill(s: string, vars?: Record<string, string | number>): string {
 
 /** Translate a Russian UI string. */
 export function t(ru: string, vars?: Record<string, string | number>): string {
-  const s = currentLang() === "en" ? EN[ru] ?? ru : ru;
+  const s = currentLang() === "en" ? en(ru) ?? ru : ru;
   return fill(s, vars);
 }
 
@@ -46,7 +46,7 @@ export function t(ru: string, vars?: Record<string, string | number>): string {
  */
 export function tn(n: number, forms: string, vars?: Record<string, string | number>): string {
   const lang = currentLang();
-  const parts = (lang === "en" ? EN[forms] ?? forms : forms).split("|");
+  const parts = (lang === "en" ? en(forms) ?? forms : forms).split("|");
   let word: string;
   if (lang === "ru" && parts.length >= 3) {
     const a = Math.abs(n) % 100;
@@ -62,7 +62,7 @@ export function tn(n: number, forms: string, vars?: Record<string, string | numb
 /** Plural word only, without the number. */
 export function tw(n: number, forms: string): string {
   const lang = currentLang();
-  const parts = (lang === "en" ? EN[forms] ?? forms : forms).split("|");
+  const parts = (lang === "en" ? en(forms) ?? forms : forms).split("|");
   if (lang === "ru" && parts.length >= 3) {
     const a = Math.abs(n) % 100;
     const b = a % 10;
@@ -77,7 +77,13 @@ export function tw(n: number, forms: string): string {
  */
 export function tErr(e: unknown): string {
   const raw = e instanceof Error ? e.message : String(e);
-  if (currentLang() !== "en" || EN[raw]) return t(raw);
+  if (currentLang() !== "en" || en(raw)) return t(raw);
   const m = /^([^:\n]{3,80}):\s([\s\S]*)$/.exec(raw);
-  return m && EN[m[1]] ? `${EN[m[1]]}: ${m[2]}` : raw;
+  const prefix = m ? en(m[1]) : undefined;
+  return prefix ? `${prefix}: ${m![2]}` : raw;
+}
+
+/** English entry for a Russian key; own keys only, so "constructor" etc. never match. */
+function en(ru: string): string | undefined {
+  return Object.hasOwn(EN, ru) ? EN[ru] : undefined;
 }

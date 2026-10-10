@@ -51,7 +51,7 @@ function save(next: Store) {
 /** Pinned paths of a session. The array is shared: do not mutate it. */
 export function getPinned(key: string | undefined): string[] {
   if (!key) return EMPTY;
-  return current[key] ?? EMPTY;
+  return Object.hasOwn(current, key) ? current[key] : EMPTY;
 }
 
 /** Replaces the pinned paths of a session (duplicates removed, capped at MAX_PINNED). */

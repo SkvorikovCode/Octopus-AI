@@ -17,10 +17,10 @@ export function sessionToMarkdown(title: string, items: Item[], meta: { project?
   for (const it of items) {
     switch (it.kind) {
       case "user":
-        out.push(`## ${t("Вы")}`, "", it.text, "");
+        out.push(`## ${t("Вы")}`, "", trimLines(it.text), "");
         break;
       case "assistant":
-        if (it.text.trim()) out.push(`## ${t("Агент")}`, "", it.text, "");
+        if (it.text.trim()) out.push(`## ${t("Агент")}`, "", trimLines(it.text), "");
         break;
       case "steps":
         out.push(
@@ -32,9 +32,12 @@ export function sessionToMarkdown(title: string, items: Item[], meta: { project?
           "",
         );
         break;
-      case "shell":
-        out.push("```console", `$ ${it.command}`, (it.output ?? "").trimEnd(), "```", "");
+      case "shell": {
+        const body = [`$ ${it.command}`, (it.output ?? "").trimEnd()].join("\n");
+        const fence = fenceFor(body);
+        out.push(`${fence}console`, body, fence, "");
         break;
+      }
       case "ask":
         out.push(
           `> **${it.ask.title || t("Запрос агента")}** — ${it.ask.state === "answered" ? t("ответ: {answer}", { answer: String(it.ask.answer) }) : t("без ответа")}`,
@@ -48,10 +51,21 @@ export function sessionToMarkdown(title: string, items: Item[], meta: { project?
         break;
     }
   }
-  return out.join("\n").replace(/\n{3,}/g, "\n\n");
+  return out.join("\n");
+}
+
+/** Drops blank lines around a message so blocks stay one empty line apart. */
+function trimLines(s: string): string {
+  return s.replace(/^\s*\n/, "").trimEnd();
+}
+
+/** A backtick fence longer than any backtick run inside the body. */
+function fenceFor(body: string): string {
+  const longest = Math.max(0, ...(body.match(/`+/g) ?? []).map((r) => r.length));
+  return "`".repeat(Math.max(3, longest + 1));
 }
 
 /** File-name friendly version of a session title. */
 export function fileStem(title: string): string {
-  return title.replace(/[\\/:*?"<>|]+/g, " ").replace(/\s+/g, " ").trim().slice(0, 60) || "session";
+  return title.replace(/[\\/:*?"<>|]+/g, " ").replace(/\s+/g, " ").trim().slice(0, 60).trim() || "session";
 }

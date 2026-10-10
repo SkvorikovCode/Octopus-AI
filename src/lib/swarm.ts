@@ -162,11 +162,13 @@ function onLifecycle(s: SwarmState, p: Raw, now: number): SwarmState {
   const id = keyOf(p.id, index);
   const prev = s.agents[id];
   const raw = text(p.status);
-  const status = statusOf(raw);
+  let status = statusOf(raw);
+  // A late "started" must not move a finished agent back to running.
+  if (prev && TERMINAL.includes(prev.status) && !TERMINAL.includes(status)) status = prev.status;
   const terminal = TERMINAL.includes(status);
 
   const lines: string[] = [];
-  const label: string | undefined = LIFECYCLE_LOG[raw];
+  const label: string | undefined = Object.hasOwn(LIFECYCLE_LOG, raw) ? LIFECYCLE_LOG[raw] : undefined;
   if (label && (!prev || prev.status !== status)) lines.push(label);
 
   const startedAt = prev?.startedAt ?? now;
@@ -201,7 +203,7 @@ function onProgress(s: SwarmState, p: Raw, now: number): SwarmState {
   // A late progress frame must not move a finished agent back to running.
   if (prev && TERMINAL.includes(prev.status) && !TERMINAL.includes(status)) status = prev.status;
 
-  const currentTool = toolOf(pr.currentTool);
+  const currentTool = TERMINAL.includes(status) ? undefined : toolOf(pr.currentTool);
   const lines: string[] = [];
   if (currentTool && currentTool !== prev?.currentTool) lines.push(`→ ${currentTool}`);
 

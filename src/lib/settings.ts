@@ -46,11 +46,33 @@ const listeners = new Set<() => void>();
 function load(): Settings {
   try {
     const raw = localStorage.getItem(KEY);
-    if (raw) return { ...DEFAULT_SETTINGS, ...JSON.parse(raw) };
+    if (raw) return sanitize(JSON.parse(raw));
   } catch {
     /* fall back to defaults */
   }
   return DEFAULT_SETTINGS;
+}
+
+/** Keeps only stored values of the right shape; anything else falls back to the default. */
+function sanitize(v: unknown): Settings {
+  if (!v || typeof v !== "object" || Array.isArray(v)) return DEFAULT_SETTINGS;
+  const o = v as Record<string, unknown>;
+  const pick = <K extends keyof Settings>(k: K, ok: (x: unknown) => boolean): Settings[K] =>
+    ok(o[k]) ? (o[k] as Settings[K]) : DEFAULT_SETTINGS[k];
+  const oneOf = (...xs: string[]) => (x: unknown) => typeof x === "string" && xs.includes(x);
+  const limit = (x: unknown) => x === null || (typeof x === "number" && Number.isFinite(x) && x > 0);
+  return {
+    accent: pick("accent", (x) => typeof x === "string" && /^#[0-9a-f]{6}$/i.test(x)),
+    uiScale: pick("uiScale", (x) => typeof x === "number" && x >= 0.85 && x <= 1.25),
+    notifications: pick("notifications", (x) => typeof x === "boolean"),
+    sendWith: pick("sendWith", oneOf("enter", "mod-enter")),
+    thinkingExpanded: pick("thinkingExpanded", (x) => typeof x === "boolean"),
+    showTiles: pick("showTiles", (x) => typeof x === "boolean"),
+    language: pick("language", oneOf("auto", "ru", "en")),
+    theme: pick("theme", oneOf("auto", "dark", "light")),
+    budgetDaily: pick("budgetDaily", limit),
+    budgetSession: pick("budgetSession", limit),
+  };
 }
 
 let current = load();

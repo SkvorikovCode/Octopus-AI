@@ -303,15 +303,15 @@ function onUiRequest(s: SessionState, f: Frame): SessionState {
       };
       return { ...s, status: "waiting", items: [...s.items, { kind: "ask", key: nextKey("q"), ask }] };
     }
-    case "cancel":
-      return {
-        ...s,
-        items: s.items.map((it) =>
-          it.kind === "ask" && it.ask.id === f.targetId && it.ask.state === "open"
-            ? { ...it, ask: { ...it.ask, state: "cancelled" } }
-            : it,
-        ),
-      };
+    case "cancel": {
+      const items = s.items.map((it) =>
+        it.kind === "ask" && it.ask.id === f.targetId && it.ask.state === "open"
+          ? { ...it, ask: { ...it.ask, state: "cancelled" as const } }
+          : it,
+      );
+      const stillOpen = items.some((it) => it.kind === "ask" && it.ask.state === "open");
+      return { ...s, items, status: s.status === "waiting" && !stillOpen ? "working" : s.status };
+    }
     case "notify":
       return f.message ? withNotice(s, f.message) : s;
     default:
@@ -335,7 +335,7 @@ function resultText(r: any): string | undefined {
   if (!r) return undefined;
   const text = typeof r === "string"
     ? r
-    : (r.content ?? []).filter((c: any) => c?.type === "text").map((c: any) => c.text).join("\n");
+    : (Array.isArray(r.content) ? r.content : []).filter((c: any) => c?.type === "text").map((c: any) => c.text).join("\n");
   if (!text) return undefined;
   return text.length > OUTPUT_CAP ? text.slice(0, OUTPUT_CAP) + "\n…" : text;
 }
@@ -392,6 +392,8 @@ function messagesToItems(messages: any[]): Item[] {
       if (step) {
         if (m.isError) step.status = "err";
         step.output = resultText(m);
+        if (typeof m.details?.diff === "string") step.diff = m.details.diff;
+        if (!step.label && typeof m.details?.path === "string") step.label = m.details.path;
       }
     }
   }
@@ -500,9 +502,10 @@ export function describeApproval(title: string | undefined, options: string[] | 
   if (!tool) return null;
   const details = lines.slice(1).map((l) => {
     const m = /^([A-Za-z ]+):\s*(.*)$/.exec(l);
-    const label = m ? FIELD_LABEL[m[1].trim().toLowerCase()] : undefined;
+    const key = m?.[1].trim().toLowerCase();
+    const label = key && Object.hasOwn(FIELD_LABEL, key) ? FIELD_LABEL[key] : undefined;
     return label ? `${t(label)}: ${m![2]}` : l;
   });
-  const action = TOOL_ACTION[tool.toLowerCase()] ?? t("Инструмент «{tool}»", { tool });
+  const action = (Object.hasOwn(TOOL_ACTION, tool.toLowerCase()) ? TOOL_ACTION[tool.toLowerCase()] : undefined) ?? t("Инструмент «{tool}»", { tool });
   return { tool, action, details };
 }
