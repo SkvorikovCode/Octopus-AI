@@ -148,13 +148,13 @@
   align-items: center;
   gap: 6px;
   background: transparent;
-  border-color: var(--accent);
-  color: var(--accent);
+  border-color: var(--accent-ink);
+  color: var(--accent-ink);
 }
 
 .swarm .swarm-stop:hover:not(:disabled) {
   background: var(--accent-soft);
-  border-color: var(--accent);
+  border-color: var(--accent-ink);
   filter: none;
 }
 
@@ -172,7 +172,7 @@
 }
 
 .swarm-tile.is-running .swarm-status {
-  color: var(--accent);
+  color: var(--accent-ink);
 }
 
 .swarm-tile.is-completed {
@@ -185,11 +185,11 @@
 }
 
 .swarm-tile.is-failed {
-  border: 1px dashed var(--accent);
+  border: 1px dashed var(--accent-ink);
 }
 
 .swarm-tile.is-failed .swarm-status {
-  color: var(--accent);
+  color: var(--accent-ink);
 }
 
 .swarm-tile.is-pending {
@@ -218,7 +218,7 @@
 }
 
 .swarm-caret {
-  color: var(--accent);
+  color: var(--accent-ink);
   animation: blink 1s steps(1) infinite;
 }
 
@@ -247,7 +247,7 @@
 }
 
 .swarm-art-fail {
-  color: var(--accent);
+  color: var(--accent-ink);
 }
 
 .swarm-art-stop {
@@ -320,7 +320,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  color: var(--accent);
+  color: var(--accent-ink);
 }
 
 .swarm-log-list {

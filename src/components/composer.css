@@ -5,7 +5,7 @@
 
 /* drag-over highlight; higher specificity than .composer:focus-within */
 .composer.is-dragging,
-.composer.is-dragging:focus-within { border-color: var(--accent); }
+.composer.is-dragging:focus-within { border-color: var(--accent-ink); }
 
 .cmp-drop {
   position: absolute; inset: 0; z-index: 10;
@@ -77,7 +77,7 @@
 /* "Plan first" chip (uses .ctl-pill from controls.css). Active = plan mode on. */
 .composer-bar .cmp-plan[aria-pressed="true"],
 .composer-bar .cmp-plan[aria-pressed="true"]:hover:not(:disabled) {
-  border-color: var(--accent); color: var(--accent); background: var(--accent-soft);
+  border-color: var(--accent-ink); color: var(--accent-ink); background: var(--accent-soft);
 }
 .cmp-plan-icon { flex: none; }
 
@@ -130,7 +130,7 @@
 .cmp-opt.is-active .cmp-pin-btn,
 .cmp-pin-btn.is-on { opacity: 1; }
 .cmp-pin-btn:hover { color: var(--ink); background: var(--panel-2); }
-.cmp-pin-btn.is-on { color: var(--accent); }
+.cmp-pin-btn.is-on { color: var(--accent-ink); }
 
 /* line under the composer after a drop */
 .cmp-added {
@@ -138,6 +138,6 @@
   font-size: 12px; color: var(--ink-3);
 }
 .cmp-added-pin {
-  padding: 0; border: 0; background: transparent; font: inherit; color: var(--accent); cursor: pointer;
+  padding: 0; border: 0; background: transparent; font: inherit; color: var(--accent-ink); cursor: pointer;
 }
 .cmp-added-pin:hover { text-decoration: underline; }

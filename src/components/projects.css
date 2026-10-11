@@ -30,7 +30,7 @@
 }
 .prj-trigger:hover,
 .prj-trigger[aria-expanded="true"] { color: var(--ink); }
-.prj-trigger:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.prj-trigger:focus-visible { outline: 2px solid var(--accent-ink); outline-offset: 1px; }
 
 .prj-icon { flex-shrink: 0; }
 
@@ -137,7 +137,7 @@
   margin-top: 7px;
   border-radius: 50%;
 }
-.prj-dot.is-current { background: var(--accent); }
+.prj-dot.is-current { background: var(--accent-ink); }
 
 .prj-item-text {
   display: flex;

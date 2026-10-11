@@ -176,6 +176,21 @@ describe("applySettings (DOM)", () => {
     expect(document.documentElement.dataset.theme).toBe("auto");
   });
 
+  it("resolves the painted scheme from the theme", () => {
+    s.updateSettings({ theme: "light" });
+    expect(document.documentElement.dataset.scheme).toBe("light");
+    s.updateSettings({ theme: "dark" });
+    expect(document.documentElement.dataset.scheme).toBe("dark");
+  });
+
+  it("darkens every preset accent until it reads on light tiles", () => {
+    for (const hex of s.ACCENTS) {
+      const deep = s.readableOnPaper(hex);
+      const n = parseInt(deep.slice(1), 16);
+      expect(s.contrast([(n >> 16) & 255, (n >> 8) & 255, n & 255], [255, 253, 249])).toBeGreaterThanOrEqual(4.5);
+    }
+  });
+
   it("applies the UI scale as body zoom", () => {
     s.updateSettings({ uiScale: 1.25 });
     expect(document.body.style.zoom).toBe("1.25");

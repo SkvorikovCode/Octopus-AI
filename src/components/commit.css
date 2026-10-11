@@ -29,7 +29,7 @@
   flex: none; width: 18px; height: 18px; border-radius: 5px; display: grid; place-items: center;
   font: 600 10px/1 var(--mono); color: var(--ink-2); background: var(--raise);
 }
-.commit-badge.s-deleted, .commit-badge.s-conflict { color: var(--accent); }
+.commit-badge.s-deleted, .commit-badge.s-conflict { color: var(--accent-ink); }
 
 .commit-file-path {
   flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
@@ -37,7 +37,7 @@
 }
 .commit-nums { flex: none; display: flex; gap: 6px; font: 11px/1 var(--mono); }
 .commit-add { color: var(--ink-3); }
-.commit-del { color: var(--accent); }
+.commit-del { color: var(--accent-ink); }
 
 .commit-msg-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .commit-gen { height: 30px; padding: 0 12px; font-size: 13px; border-radius: 9px; }
@@ -52,13 +52,13 @@
 .commit-msg:focus, .commit-input:focus { border-color: var(--dim); }
 .commit-msg:disabled, .commit-input:disabled { opacity: 0.6; }
 
-.commit-inline-err { font: 13px/1.4 var(--ui); color: var(--accent); }
+.commit-inline-err { font: 13px/1.4 var(--ui); color: var(--accent-ink); }
 .commit-err { margin: 0; }
 
 .commit-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
 
 .commit-result { margin: 0; font-size: 16px; color: var(--ink); }
-.commit-hash { margin-left: 8px; color: var(--accent); font-size: 14px; }
+.commit-hash { margin-left: 8px; color: var(--accent-ink); font-size: 14px; }
 
 .commit-pr-link {
   font: 13px/1.4 var(--mono); color: var(--ink-2); word-break: break-all;

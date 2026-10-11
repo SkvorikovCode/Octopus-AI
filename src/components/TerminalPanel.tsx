@@ -38,7 +38,7 @@ const cssVar = (name: string) => getComputedStyle(document.documentElement).getP
 /** Selection color: the accent at 30%. Resolved through a probe element, since xterm needs a concrete color. */
 function selectionColor(): string | undefined {
   const probe = document.createElement("span");
-  probe.style.color = "var(--accent)";
+  probe.style.color = "var(--accent-ink)";
   document.body.appendChild(probe);
   const resolved = getComputedStyle(probe).color;
   probe.remove();
@@ -55,7 +55,7 @@ function termTheme(): ITheme {
   return {
     background: bg || undefined,
     foreground: cssVar("--ink") || undefined,
-    cursor: cssVar("--accent") || undefined,
+    cursor: cssVar("--accent-ink") || undefined,
     cursorAccent: bg || undefined,
     selectionBackground: selectionColor(),
   };
@@ -181,7 +181,7 @@ export function TerminalTab({
       term.options.theme = termTheme();
     };
     const themeObserver = new MutationObserver(applyTheme);
-    themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme", "style"] });
+    themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme", "data-scheme", "style"] });
     const scheme = window.matchMedia("(prefers-color-scheme: dark)");
     scheme.addEventListener("change", applyTheme);
 

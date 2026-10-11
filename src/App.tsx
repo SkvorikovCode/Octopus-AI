@@ -1147,7 +1147,7 @@ export default function App() {
           )}
           {changes?.isRepo && (
             <button className={`chip changes-chip ${changesOpen ? "active" : ""}`} onClick={() => setChangesOpen(!changesOpen)} title={t("Изменения в рабочей папке")}>
-              {changes.branch ?? "git"} · {changes.files.length > 0 ? <><span style={{ color: "var(--accent)" }}>+{changes.additions}</span> −{changes.deletions}</> : t("без изменений")}
+              {changes.branch ?? "git"} · {changes.files.length > 0 ? <><span style={{ color: "var(--accent-ink)" }}>+{changes.additions}</span> −{changes.deletions}</> : t("без изменений")}
             </button>
           )}
         </header>

@@ -159,7 +159,7 @@
 }
 .st-track { stroke: var(--dot); transition: stroke 0.15s; }
 .st-lit { stroke: var(--ink); transition: opacity 0.15s; }
-.st-lit-today { stroke: var(--accent); }
+.st-lit-today { stroke: var(--accent-ink); }
 .st-col:hover .st-track { stroke: var(--dim); }
 .st-col:hover .st-lit { opacity: 0.7; }
 .st-axis {

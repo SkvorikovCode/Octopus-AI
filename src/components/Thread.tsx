@@ -300,7 +300,7 @@ const ItemView = memo(function ItemView({ it, userIndex, isLastReply, busy, canR
     case "error":
       return (
         <AgentRow>
-          <div className="err-card"><span style={{ color: "var(--accent)" }}>●</span>{it.text}</div>
+          <div className="err-card"><span style={{ color: "var(--accent-ink)" }}>●</span>{it.text}</div>
         </AgentRow>
       );
     case "notice":

@@ -103,7 +103,7 @@
   color: var(--mute);
 }
 .ctl-opt-desc.warn {
-  color: var(--accent);
+  color: var(--accent-ink);
 }
 
 .ctl-badge {
@@ -124,7 +124,7 @@
   align-self: center;
   display: grid;
   place-items: center;
-  color: var(--accent);
+  color: var(--accent-ink);
 }
 
 /* ---------- transcript drawer ---------- */
@@ -295,7 +295,7 @@
   overflow-wrap: anywhere;
 }
 .trn-result.is-error {
-  border-left: 2px solid var(--accent);
+  border-left: 2px solid var(--accent-ink);
 }
 
 .trn-other {

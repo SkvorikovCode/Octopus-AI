@@ -111,7 +111,10 @@ export function applySettings(s: Settings = current) {
   const root = document.documentElement;
   root.style.setProperty("--accent", s.accent);
   root.style.setProperty("--accent-soft", hexAlpha(s.accent, 0.1));
+  root.style.setProperty("--accent-deep", readableOnPaper(s.accent));
   root.dataset.theme = s.theme;
+  root.dataset.scheme = resolveScheme(s.theme);
+  watchScheme();
   const nav = (typeof navigator !== "undefined" && (navigator.languages?.[0] ?? navigator.language)) || "en";
   root.lang = s.language === "auto" ? (nav.toLowerCase().startsWith("ru") ? "ru" : "en") : s.language;
   (document.body.style as CSSStyleDeclaration & { zoom: string }).zoom = String(s.uiScale);
@@ -122,4 +125,43 @@ function hexAlpha(hex: string, a: number) {
   if (!m) return `rgba(255, 61, 46, ${a})`;
   const n = parseInt(m[1], 16);
   return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${a})`;
+}
+
+/** The scheme the CSS paints: "auto" follows the system. */
+export function resolveScheme(theme: Settings["theme"]): "light" | "dark" {
+  if (theme !== "auto") return theme;
+  const mq = typeof window !== "undefined" && typeof window.matchMedia === "function" ? window.matchMedia("(prefers-color-scheme: light)") : null;
+  return mq?.matches ? "light" : "dark";
+}
+
+let watching = false;
+function watchScheme() {
+  if (watching || typeof window === "undefined" || typeof window.matchMedia !== "function") return;
+  watching = true;
+  window.matchMedia("(prefers-color-scheme: light)").addEventListener("change", () => applySettings());
+}
+
+const PAPER = [255, 253, 249];
+
+function luminance([r, g, b]: number[]) {
+  const c = [r, g, b].map((v) => {
+    const x = v / 255;
+    return x <= 0.03928 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4;
+  });
+  return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+}
+
+export function contrast(a: number[], b: number[]) {
+  const [hi, lo] = [luminance(a), luminance(b)].sort((x, y) => y - x);
+  return (hi + 0.05) / (lo + 0.05);
+}
+
+/** The accent darkened, keeping its hue, until it reads as text (4.5:1) on the light tiles. */
+export function readableOnPaper(hex: string): string {
+  const m = /^#?([0-9a-f]{6})$/i.exec(hex);
+  if (!m) return "#c4261a";
+  const n = parseInt(m[1], 16);
+  let rgb = [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+  for (let i = 0; i < 40 && contrast(rgb, PAPER) < 4.5; i++) rgb = rgb.map((v) => Math.round(v * 0.94));
+  return "#" + rgb.map((v) => v.toString(16).padStart(2, "0")).join("");
 }

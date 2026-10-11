@@ -308,7 +308,7 @@ export function Sidebar(p: Props) {
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeDasharray="0 3" aria-hidden="true"><circle cx="8" cy="8" r="6" /></svg>
           <span style={{ flex: 1 }}>{t("Рой агентов")}</span>
           {p.swarmActive > 0 ? (
-            <span className="mono" style={{ fontSize: 11, color: "var(--accent)" }}>{p.swarmActive} ●</span>
+            <span className="mono" style={{ fontSize: 11, color: "var(--accent-ink)" }}>{p.swarmActive} ●</span>
           ) : p.swarmTotal > 0 ? (
             <span className="mono" style={{ fontSize: 11, color: "var(--mute)" }}>{p.swarmTotal}</span>
           ) : null}

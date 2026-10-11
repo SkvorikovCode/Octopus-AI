@@ -10,11 +10,11 @@
   -webkit-app-region: no-drag; flex-wrap: wrap;
 }
 .budget-warn .budget-bar { border-color: var(--line-3); }
-.budget-over .budget-bar { border-color: var(--accent); background: var(--accent-soft); color: var(--ink); }
+.budget-over .budget-bar { border-color: var(--accent-ink); background: var(--accent-soft); color: var(--ink); }
 
 .budget-dots { display: inline-flex; align-items: center; gap: 3px; flex-shrink: 0; }
 .budget-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--dot); }
-.budget-dot.on { background: var(--accent); }
+.budget-dot.on { background: var(--accent-ink); }
 
 .budget-pct {
   font-family: var(--mono); font-size: 12px; color: var(--ink-3); flex-shrink: 0;
@@ -39,7 +39,7 @@
   background: var(--bg); border: 1px solid var(--line-2); border-radius: 10px;
 }
 .budget-money:focus-within,
-.budget-money.invalid { border-color: var(--accent); }
+.budget-money.invalid { border-color: var(--accent-ink); }
 .budget-money-prefix { padding: 0 0 0 12px; font-size: 14px; color: var(--ink-3); }
 .budget-money-input {
   flex: 1; min-width: 0; height: 100%; padding: 0 12px 0 6px; box-sizing: border-box;
