@@ -84,6 +84,9 @@
 .mp-src.free { color: var(--ink-2); }
 .mp-src.catalog { color: var(--mute); }
 .mp-src.none { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
+.mp-src.plan { color: var(--ink-2); border-color: var(--line-3); }
+.mp-row.plan .mp-num { color: var(--dim); }
+.mp-plan-note { margin: 0 0 4px; }
 
 .mp-edit { height: 28px; padding: 0 10px; font-size: 12px; flex-shrink: 0; }
 

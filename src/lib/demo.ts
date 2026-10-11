@@ -74,6 +74,13 @@ export class DemoClient {
           { provider: "anthropic", id: "claude-sonnet-5-5", name: "Claude Sonnet 5.5" },
           { provider: "wikivibe", id: "gpt-6-luna", name: "6 Luna" },
         ] } as T;
+      // Claude is signed in with a subscription, like in the demo sign-in screen.
+      case "get_login_providers":
+        return { providers: [{ id: "anthropic", name: "Anthropic", available: true, authenticated: true }] } as T;
+      case "get_logout_accounts":
+        return {
+          accounts: command.providerId === "anthropic" ? [{ credentialId: 1, label: "you@example.com", type: "oauth", active: true }] : [],
+        } as T;
       case "get_available_commands":
         return { commands: [
           { name: "review", description: "Код-ревью текущих изменений" },
