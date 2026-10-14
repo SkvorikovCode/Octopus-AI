@@ -1,7 +1,7 @@
 {
   "name": "octopus-ai",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "A desktop app for working with coding agents: parallel agents in isolated git worktrees, your own keys.",
   "license": "Apache-2.0",
   "author": "Octopus AI contributors",
