@@ -444,9 +444,13 @@ fn delete_in(home: &Path, cwd: Option<&Path>, scope: &str, name: &str) -> Result
 // ---------- Tauri commands ----------
 
 #[tauri::command]
-pub fn rules_list(cwd: Option<String>) -> Result<RulesList, String> {
-    let cwd = cwd_of(&cwd);
-    Ok(list_in(&home_dir()?, cwd.as_deref()))
+pub async fn rules_list(cwd: Option<String>) -> Result<RulesList, String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        let cwd = cwd_of(&cwd);
+        Ok(list_in(&home_dir()?, cwd.as_deref()))
+    })
+    .await
+    .map_err(|e| e.to_string())?
 }
 
 #[tauri::command]
