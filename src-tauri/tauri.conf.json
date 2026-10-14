@@ -45,7 +45,8 @@
     "copyright": "Copyright 2026 Octopus AI contributors",
     "shortDescription": "Desktop app for coding agents",
     "macOS": {
-      "signingIdentity": "-"
+      "signingIdentity": "-",
+      "hardenedRuntime": false
     }
   },
   "plugins": {

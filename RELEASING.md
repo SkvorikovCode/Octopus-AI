@@ -66,7 +66,11 @@ Without an Apple Developer ID the app is **ad-hoc signed** (`bundle.macOS.signin
 in `tauri.conf.json`). That seal matters: a bundle with no proper signature (only the linker's) is
 reported by Gatekeeper as **"damaged, move to Trash"** with no way to open it. With the ad-hoc seal
 macOS says it cannot verify the developer and offers **Open Anyway** under System Settings →
-Privacy & Security (macOS 15+ removed the right-click → Open shortcut). Check a build with:
+Privacy & Security (macOS 15+ removed the right-click → Open shortcut). **Hardened runtime stays off** (`hardenedRuntime: false`): it enforces library validation, and
+once the engine is re-signed ad-hoc it loses its developer's team ID, so it may no longer load the
+native module it unpacks into `~/.omp/natives/` on first run ("Failed to load pi_natives native
+addon"). Hardened runtime only matters for notarization; turn it back on together with a real
+Developer ID. Check a build with:
 
 ```sh
 codesign --verify --deep --strict --verbose=2 Octopus.app   # must say "valid on disk"
