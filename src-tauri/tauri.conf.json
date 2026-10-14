@@ -43,7 +43,10 @@
     ],
     "category": "DeveloperTool",
     "copyright": "Copyright 2026 Octopus AI contributors",
-    "shortDescription": "Desktop app for coding agents"
+    "shortDescription": "Desktop app for coding agents",
+    "macOS": {
+      "signingIdentity": "-"
+    }
   },
   "plugins": {
     "updater": {
