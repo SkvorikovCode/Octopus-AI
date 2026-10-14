@@ -78,6 +78,7 @@ jobs:
 
             ### Install
             1. Download the `.dmg` below and drag Octopus into Applications.
-            2. macOS will say the app cannot be opened because the developer cannot be verified. Right-click Octopus, choose **Open**, then **Open** again. Or run `xattr -dr com.apple.quarantine /Applications/Octopus.app`.
+            2. Open Octopus. macOS will say it could not verify the developer: press **Done**, open **System Settings → Privacy & Security**, scroll down and press **Open Anyway** next to Octopus, then confirm. This is needed once.
+               Or, in Terminal: `xattr -dr com.apple.quarantine /Applications/Octopus.app`
 
             On first launch the app asks for a provider key. Found a problem? [Open an issue](https://github.com/SkvorikovCode/Octopus-AI/issues/new/choose).
