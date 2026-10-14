@@ -158,6 +158,9 @@ fn ui_prompt(lang: Option<&str>) -> String {
     )
 }
 
+/// Any model from the engine's built-in catalog; see the `ephemeral` branch of `omp_start`.
+const HELPER_MODEL: &str = "openai/gpt-4o";
+
 #[tauri::command]
 pub fn omp_start(
     app: AppHandle,
@@ -188,7 +191,10 @@ pub fn omp_start(
     let mut cmd = Command::new(&bin);
     cmd.args(["--mode", "rpc-ui", "--approval-mode", &mode]);
     if ephemeral == Some(true) {
-        cmd.arg("--no-session");
+        // The helper only signs in and lists providers, it never prompts. On a fresh machine
+        // with no model configured the engine refuses to start ("No default model selected"),
+        // so name a catalog model: that is enough to start, no key or request needed.
+        cmd.args(["--no-session", "--model", HELPER_MODEL]);
     }
     cmd.args(["--append-system-prompt", &ui_prompt(lang.as_deref())])
         .current_dir(&cwd)
