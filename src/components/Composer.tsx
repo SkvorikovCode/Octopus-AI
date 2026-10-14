@@ -52,6 +52,8 @@ type Props = {
   projectDir?: string;
   /** Session the pinned files belong to. Without it, pinning is off. */
   sessionKey?: string;
+  /** Pinned to the right of the hint line under the field, e.g. the compact session tiles. */
+  statusSlot?: ReactNode;
 };
 
 const MAX_IMAGES = 6;
@@ -198,6 +200,7 @@ export function Composer({
   isolatedHint,
   projectDir,
   sessionKey,
+  statusSlot,
 }: Props) {
   const ref = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -810,12 +813,15 @@ export function Composer({
           )}
         </div>
       )}
-      <div className="hint">
-        {shellMode
-          ? t("Команда выполнится в папке проекта, агент увидит вывод")
-          : settings.sendWith === "mod-enter"
-            ? t("⌘ Enter — отправить · Enter — новая строка · ! — команда в терминале")
-            : t("Enter — отправить · Shift+Enter — новая строка · ! — команда в терминале")}
+      <div className={statusSlot ? "hint has-status" : "hint"}>
+        <span className="hint-text">
+          {shellMode
+            ? t("Команда выполнится в папке проекта, агент увидит вывод")
+            : settings.sendWith === "mod-enter"
+              ? t("⌘ Enter — отправить · Enter — новая строка · ! — команда в терминале")
+              : t("Enter — отправить · Shift+Enter — новая строка · ! — команда в терминале")}
+        </span>
+        {statusSlot && <div className="hint-status">{statusSlot}</div>}
       </div>
     </div>
   );

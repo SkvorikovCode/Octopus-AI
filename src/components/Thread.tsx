@@ -139,25 +139,18 @@ export function Thread(props: Props) {
     );
   }
 
-  const inFlight = status === "working" || status === "thinking";
-  const last = items[items.length - 1];
+  const live = status === "working" || status === "thinking" || status === "waiting";
   // Position of each user message among user messages — what the agent's branch list is indexed by.
   // Computed over the full list so windowed items still get the right index.
   const userPos = new Array<number>(total);
   let users = 0;
   for (let i = 0; i < total; i++) userPos[i] = items[i].kind === "user" ? users++ : -1;
-  // The newest answer keeps its action row visible without hover.
-  let lastReply = -1;
-  for (let i = total - 1; i >= 0; i--) {
-    const it = items[i];
-    if (it.kind === "assistant" && it.text.trim()) {
-      lastReply = i;
-      break;
-    }
-  }
   const canRetry = !!onRetry;
   const canEdit = !!onEdit;
   const hasOpenFile = !!onOpenFile;
+  const rows = groupRows(items, hidden);
+  // The agent took the turn but has nothing to show yet: an empty live turn holds the spinner.
+  if (live && rows[rows.length - 1]?.kind !== "turn") rows.push({ kind: "turn", key: "live", items: [] });
 
   return (
     <OpenFileContext.Provider value={hasOpenFile ? openFile : undefined}>
@@ -168,27 +161,21 @@ export function Thread(props: Props) {
               {t("Показать ранние сообщения ({count})", { count: hidden })}
             </button>
           )}
-          {items.slice(hidden).map((it, j) => {
-            const i = hidden + j;
-            const ui = userPos[i];
-            return (
+          {rows.map((r, j) =>
+            r.kind === "turn" ? (
+              <Turn key={r.key} items={r.items} live={live && j === rows.length - 1} status={status} onAnswer={cb.onAnswer} />
+            ) : (
               <ItemView
-                key={it.key}
-                it={it}
-                userIndex={ui}
-                isLastReply={i === lastReply}
-                busy={ui >= 0 && busy}
+                key={r.item.key}
+                it={r.item}
+                userIndex={userPos[r.index]}
+                busy={userPos[r.index] >= 0 && busy}
                 canRetry={canRetry}
                 canEdit={canEdit}
-                canRestore={ui >= 0 && !!onRestore && !!restorable?.has(ui)}
+                canRestore={userPos[r.index] >= 0 && !!onRestore && !!restorable?.has(userPos[r.index])}
                 cb={cb}
               />
-            );
-          })}
-          {inFlight && last?.kind !== "assistant" && (
-            <AgentRow>
-              <div className="thinking-line"><DotSpinner />{status === "thinking" ? t("думаю…") : t("работаю…")}</div>
-            </AgentRow>
+            ),
           )}
         </div>
       </div>
@@ -196,12 +183,27 @@ export function Thread(props: Props) {
   );
 }
 
+type Row = { kind: "item"; item: Item; index: number } | { kind: "turn"; key: string; items: Item[] };
+
+/** Agent output between two user-side items (message, shell command, notice) forms one turn. */
+const TURN_KINDS = new Set<Item["kind"]>(["assistant", "steps", "ask", "error"]);
+
+function groupRows(items: Item[], from: number): Row[] {
+  const rows: Row[] = [];
+  for (let i = from; i < items.length; i++) {
+    const it = items[i];
+    const prev = rows[rows.length - 1];
+    if (!TURN_KINDS.has(it.kind)) rows.push({ kind: "item", item: it, index: i });
+    else if (prev?.kind === "turn") prev.items.push(it);
+    else rows.push({ kind: "turn", key: it.key, items: [it] });
+  }
+  return rows;
+}
+
 type ItemProps = {
   it: Item;
   /** Position among user messages; -1 for other items. */
   userIndex: number;
-  /** The newest answer keeps its action row visible without hover. */
-  isLastReply: boolean;
   /** Disables the user message actions while the agent works. */
   busy: boolean;
   canRetry: boolean;
@@ -211,7 +213,7 @@ type ItemProps = {
 };
 
 /** One thread item. Memoized: an item re-renders only when its own object changes. */
-const ItemView = memo(function ItemView({ it, userIndex, isLastReply, busy, canRetry, canEdit, canRestore, cb }: ItemProps) {
+const ItemView = memo(function ItemView({ it, userIndex, busy, canRetry, canEdit, canRestore, cb }: ItemProps) {
   switch (it.kind) {
     case "user": {
       // Plan-first prompts carry the app's instruction after a separator: show the task only.
@@ -225,35 +227,27 @@ const ItemView = memo(function ItemView({ it, userIndex, isLastReply, busy, canR
           </div>
           <MsgActions>
             <CopyButton text={shown} />
-            {canRetry && (
-              <button
-                type="button"
-                className="th-act"
-                disabled={busy}
-                title={busy ? t("Дождитесь, пока агент закончит") : undefined}
-                aria-label={t("Повторить сообщение")}
-                onClick={() => cb.onRetry(it.text)}
-              >
+            {/* Retry, edit and restore can't run while the agent works: hidden until it's done. */}
+            {canRetry && !busy && (
+              <button type="button" className="th-act" aria-label={t("Повторить сообщение")} onClick={() => cb.onRetry(it.text)}>
                 {t("Повторить")}
               </button>
             )}
-            {canEdit && (
+            {canEdit && !busy && (
               <button
                 type="button"
                 className="th-act"
-                disabled={busy}
-                title={busy ? t("Дождитесь, пока агент закончит") : t("Начать заново с этого сообщения")}
+                title={t("Начать заново с этого сообщения")}
                 aria-label={t("Изменить сообщение")}
                 onClick={() => cb.onEdit(userIndex, it.text)}
               >
                 {t("Изменить")}
               </button>
             )}
-            {canRestore && (
+            {canRestore && !busy && (
               <button
                 type="button"
                 className="th-act"
-                disabled={busy}
                 title={t("Вернуть файлы проекта к состоянию до этого сообщения")}
                 onClick={() => cb.onRestore(userIndex)}
               >
@@ -264,23 +258,6 @@ const ItemView = memo(function ItemView({ it, userIndex, isLastReply, busy, canR
         </div>
       );
     }
-    case "assistant":
-      return (
-        <AgentRow className="th-msg">
-          {it.thinking.trim() ? <Thinking text={it.thinking} waiting={it.streaming && !it.text} /> : null}
-          {it.text ? <Markdown text={it.text} /> : null}
-          {it.streaming && <span className="cursor" />}
-          {it.text.trim() ? (
-            <MsgActions alwaysVisible={isLastReply}>
-              <CopyButton text={it.text} />
-            </MsgActions>
-          ) : null}
-        </AgentRow>
-      );
-    case "steps":
-      return <AgentRow><Steps steps={it.steps} /></AgentRow>;
-    case "ask":
-      return <AgentRow><AskCard ask={it.ask} onAnswer={cb.onAnswer} /></AgentRow>;
     case "shell":
       return (
         <div className="th-shell">
@@ -297,16 +274,173 @@ const ItemView = memo(function ItemView({ it, userIndex, isLastReply, busy, canR
           {!it.running && <pre className="th-shell-out">{it.output?.trimEnd() || t("нет вывода")}</pre>}
         </div>
       );
-    case "error":
-      return (
-        <AgentRow>
-          <div className="err-card"><span style={{ color: "var(--accent-ink)" }}>●</span>{it.text}</div>
-        </AgentRow>
-      );
     case "notice":
       return <div className="notice">{it.text}</div>;
+    default:
+      return null;
   }
 });
+
+type TimelineEntry =
+  | { kind: "think"; key: string; text: string; waiting: boolean }
+  | { kind: "say"; key: string; text: string; streaming: boolean }
+  | { kind: "step"; key: string; step: Step; index: number }
+  | { kind: "asked"; key: string; ask: Ask };
+
+/** While the agent works, the timeline shows only its newest entries. */
+const LIVE_TAIL = 6;
+
+/**
+ * One agent turn: thinking, steps and in-between remarks fold into one "work" block (open while
+ * the agent works, a single line after); the final answer, open questions and errors sit below it.
+ */
+const Turn = memo(
+  function Turn({ items, live, status, onAnswer }: { items: Item[]; live: boolean; status: Status; onAnswer: Props["onAnswer"] }) {
+    const [manual, setManual] = useState<boolean | null>(null);
+
+    // The final answer: the newest text, unless the agent went on working after it.
+    let finalIdx = -1;
+    for (let i = items.length - 1; i >= 0; i--) {
+      const it = items[i];
+      if (it.kind === "ask" || it.kind === "error") continue;
+      if (it.kind === "assistant" && it.text.trim()) finalIdx = i;
+      break;
+    }
+
+    const entries: TimelineEntry[] = [];
+    const openAsks: Ask[] = [];
+    const errors: { key: string; text: string }[] = [];
+    const steps: Step[] = [];
+    items.forEach((it, i) => {
+      if (it.kind === "assistant") {
+        if (it.thinking.trim()) entries.push({ kind: "think", key: `${it.key}-t`, text: it.thinking, waiting: it.streaming && !it.text });
+        if (it.text.trim() && i !== finalIdx) entries.push({ kind: "say", key: it.key, text: it.text, streaming: it.streaming });
+      } else if (it.kind === "steps") {
+        for (const st of it.steps) entries.push({ kind: "step", key: st.id, step: st, index: steps.push(st) - 1 });
+      } else if (it.kind === "ask") {
+        if (it.ask.state === "open") openAsks.push(it.ask);
+        else entries.push({ kind: "asked", key: it.key, ask: it.ask });
+      } else if (it.kind === "error") {
+        errors.push({ key: it.key, text: it.text });
+      }
+    });
+    const final = finalIdx >= 0 ? (items[finalIdx] as Extract<Item, { kind: "assistant" }>) : null;
+
+    const open = manual ?? live;
+    const shown = open && manual !== true && entries.length > LIVE_TAIL ? entries.slice(-LIVE_TAIL) : entries;
+    const earlier = open ? entries.length - shown.length : 0;
+    const showWork = live || entries.length > 0;
+
+    return (
+      <AgentRow>
+        {showWork && (
+          <div className="th-work">
+            <button
+              type="button"
+              className={`steps-pill th-work-head ${live ? "live" : ""}`}
+              aria-expanded={open}
+              disabled={entries.length === 0}
+              onClick={() => setManual(!open)}
+            >
+              {live ? <DotSpinner /> : <DoneMark failed={steps.some((x) => x.status === "err")} />}
+              <span>{workSummary(live, status, steps)}</span>
+              {entries.length > 0 && <Icon name={open ? "chevron-down" : "chevron-right"} size={11} />}
+            </button>
+            {open && entries.length > 0 && (
+              <div className="th-tl">
+                {earlier > 0 && (
+                  <button type="button" className="th-act th-tl-more" onClick={() => setManual(true)}>
+                    {t("Ещё раньше: {n}", { n: earlier })}
+                  </button>
+                )}
+                {shown.map((e) => <TimelineRow key={e.key} e={e} />)}
+              </div>
+            )}
+          </div>
+        )}
+        {final && (
+          <div className="th-msg th-final">
+            <Markdown text={final.text} />
+            {final.streaming && <span className="cursor" />}
+            {!final.streaming && (
+              <MsgActions>
+                <CopyButton text={final.text} />
+              </MsgActions>
+            )}
+          </div>
+        )}
+        {openAsks.map((a) => <AskCard key={a.id} ask={a} onAnswer={onAnswer} />)}
+        {errors.map((e) => (
+          <div key={e.key} className="err-card"><span style={{ color: "var(--accent-ink)" }}>●</span>{e.text}</div>
+        ))}
+      </AgentRow>
+    );
+  },
+  (a, b) =>
+    a.live === b.live &&
+    (!a.live || a.status === b.status) &&
+    a.onAnswer === b.onAnswer &&
+    a.items.length === b.items.length &&
+    a.items.every((it, i) => it === b.items[i]),
+);
+
+function TimelineRow({ e }: { e: TimelineEntry }) {
+  switch (e.kind) {
+    case "think":
+      return <Thinking text={e.text} waiting={e.waiting} />;
+    case "say":
+      return (
+        <div className="th-say">
+          <Markdown text={e.text} />
+          {e.streaming && <span className="cursor" />}
+        </div>
+      );
+    case "step":
+      return <StepRow step={e.step} index={e.index} />;
+    case "asked": {
+      const tool = e.ask.method === "select" ? describeApproval(e.ask.title, e.ask.options) : null;
+      const what = tool ? [t(tool.action).toLowerCase(), ...tool.details].join(" · ") : e.ask.title || e.ask.message || t("Вопрос агента");
+      return (
+        <div className="th-tl-asked">
+          <span className="th-tl-asked-a">{e.ask.state === "cancelled" ? t("Запрос отменён") : e.ask.answer}</span>
+          <span className="th-tl-asked-q">{what}</span>
+        </div>
+      );
+    }
+  }
+}
+
+function DoneMark({ failed }: { failed: boolean }) {
+  return (
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" strokeLinecap="round" aria-hidden="true">
+      <circle cx="7" cy="7" r="5.5" stroke={failed ? "var(--accent-ink)" : "var(--ink-3)"} strokeWidth="2" strokeDasharray="0 3.6" />
+      {!failed && <path d="M4.6 7.2l1.7 1.7 3.2-3.6" stroke="var(--ink)" strokeWidth="1.5" />}
+    </svg>
+  );
+}
+
+/** "Работаю · 5 шагов" while live; "Работал 1:12 · 5 шагов · read, grep, edit" after. */
+function workSummary(live: boolean, status: Status, steps: Step[]): string {
+  const parts: string[] = [];
+  if (live) {
+    parts.push(status === "waiting" ? t("Ждёт вашего ответа") : status === "thinking" ? t("Думаю") : t("Работаю"));
+  } else {
+    const starts = steps.map((x) => x.startedAt).filter((x): x is number => x != null);
+    const ends = steps.map((x) => x.endedAt).filter((x): x is number => x != null);
+    const ms = starts.length && ends.length ? Math.max(...ends) - Math.min(...starts) : 0;
+    parts.push(ms >= 1000 ? t("Работал {time}", { time: clock(ms) }) : steps.length ? t("Готово") : t("Ход мысли"));
+  }
+  if (steps.length) parts.push(tn(steps.length, "шаг|шага|шагов"));
+  if (!live && steps.length) parts.push([...new Set(steps.map((x) => x.name))].slice(0, 3).join(", "));
+  const failed = steps.filter((x) => x.status === "err").length;
+  if (failed) parts.push(t("ошибок: {n}", { n: failed }));
+  return parts.join(" · ");
+}
+
+function clock(ms: number) {
+  const sec = Math.round(ms / 1000);
+  return `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, "0")}`;
+}
 
 function AgentRow({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
@@ -343,29 +477,6 @@ function CopyButton({ text }: { text: string }) {
     <button type="button" className="th-act" onClick={copy} aria-label={copied ? t("Скопировано") : t("Копировать сообщение")}>
       {copied ? t("Скопировано") : t("Копировать")}
     </button>
-  );
-}
-
-function Steps({ steps }: { steps: Step[] }) {
-  const [open, setOpen] = useState(false);
-  const running = steps.some((s) => s.status === "run");
-  const failed = steps.filter((s) => s.status === "err").length;
-  const names = [...new Set(steps.map((s) => s.name))].slice(0, 3).join(", ");
-  return (
-    <>
-      <button className="steps-pill" onClick={() => setOpen(!open)} aria-expanded={open}>
-        {running ? <DotSpinner /> : (
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="var(--ink)" strokeWidth="2" strokeLinecap="round" strokeDasharray="0 3.6" aria-hidden="true"><circle cx="7" cy="7" r="5.5" /></svg>
-        )}
-        <span><b>{tn(steps.length, "шаг|шага|шагов")}</b> · {names}{failed ? ` · ${t("ошибок: {n}", { n: failed })}` : ""}</span>
-        <Icon name={open ? "chevron-down" : "chevron-right"} size={11} />
-      </button>
-      {open && (
-        <div className="steps-list">
-          {steps.map((s, i) => <StepRow key={s.id} step={s} index={i} />)}
-        </div>
-      )}
-    </>
   );
 }
 
@@ -565,8 +676,8 @@ function AskCard({ ask, onAnswer }: { ask: Ask; onAnswer: Props["onAnswer"] }) {
           <div className="ask-answer">{ask.state === "cancelled" ? t("Запрос отменён") : ask.answer}</div>
         ) : (
           <div className="ask-actions">
-            <button className="btn primary" onClick={() => onAnswer(ask, { value: "Approve" }, t("Разрешено"))}>{t("Разрешить")}</button>
             <button className="btn" onClick={() => onAnswer(ask, { value: "Deny" }, t("Запрещено"))}>{t("Запретить")}</button>
+            <button className="btn primary" onClick={() => onAnswer(ask, { value: "Approve" }, t("Разрешено"))}>{t("Разрешить")}</button>
           </div>
         )}
       </div>
@@ -581,8 +692,8 @@ function AskCard({ ask, onAnswer }: { ask: Ask; onAnswer: Props["onAnswer"] }) {
         <div className="ask-answer">{ask.state === "cancelled" ? t("Запрос отменён") : t("Ответ: {answer}", { answer: String(ask.answer) })}</div>
       ) : ask.method === "confirm" ? (
         <div className="ask-actions">
-          <button className="btn primary" onClick={() => onAnswer(ask, { confirmed: true }, t("разрешено"))}>{t("Разрешить")}</button>
           <button className="btn" onClick={() => onAnswer(ask, { confirmed: false }, t("отклонено"))}>{t("Отклонить")}</button>
+          <button className="btn primary" onClick={() => onAnswer(ask, { confirmed: true }, t("разрешено"))}>{t("Разрешить")}</button>
         </div>
       ) : ask.method === "select" ? (
         <div className="ask-actions">

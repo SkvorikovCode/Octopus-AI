@@ -205,11 +205,18 @@ export function SettingsScreen({
               />
             </Row>
 
-            <Row label={t("Плитки справа")} hint={t("Агент, токены, план и контекст")}>
-              <Toggle
-                label={t("Плитки справа")}
-                checked={s.showTiles}
-                onChange={(v) => updateSettings({ showTiles: v })}
+            <Row
+              label={t("Плитки сессии")}
+              hint={t("Агент, токены, план и контекст. В узком окне всегда компактные")}
+            >
+              <Segmented<Settings["tilesMode"]>
+                label={t("Плитки сессии")}
+                options={[
+                  { value: "full", text: t("Обычные") },
+                  { value: "compact", text: t("Компактные") },
+                ]}
+                value={s.tilesMode}
+                onChange={(v) => updateSettings({ tilesMode: v })}
               />
             </Row>
           </Section>

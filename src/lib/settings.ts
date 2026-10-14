@@ -13,8 +13,9 @@ export type Settings = {
   sendWith: "enter" | "mod-enter";
   /** Open the model's reasoning block by default. */
   thinkingExpanded: boolean;
-  /** Right-hand tiles column (agent, tokens, plan, context). */
-  showTiles: boolean;
+  /** Session tiles (agent, tokens, plan, context): a column on the right, or small rings under the
+   *  composer. A window too narrow for the column shows the rings either way. */
+  tilesMode: "full" | "compact";
   /** Interface language: follow the system, or fixed. */
   language: "auto" | "ru" | "en";
   /** Color theme: the dark brand look (default), light paper, or follow the system. */
@@ -33,7 +34,7 @@ export const DEFAULT_SETTINGS: Settings = {
   notifications: true,
   sendWith: "enter",
   thinkingExpanded: false,
-  showTiles: true,
+  tilesMode: "full",
   language: "auto",
   theme: "dark",
   budgetDaily: null,
@@ -67,7 +68,8 @@ function sanitize(v: unknown): Settings {
     notifications: pick("notifications", (x) => typeof x === "boolean"),
     sendWith: pick("sendWith", oneOf("enter", "mod-enter")),
     thinkingExpanded: pick("thinkingExpanded", (x) => typeof x === "boolean"),
-    showTiles: pick("showTiles", (x) => typeof x === "boolean"),
+    // Before the modes there was an on/off switch; "off" maps to the least space taken.
+    tilesMode: o.tilesMode === undefined && o.showTiles === false ? "compact" : pick("tilesMode", oneOf("full", "compact")),
     language: pick("language", oneOf("auto", "ru", "en")),
     theme: pick("theme", oneOf("auto", "dark", "light")),
     budgetDaily: pick("budgetDaily", limit),

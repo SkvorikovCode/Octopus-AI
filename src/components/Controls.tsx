@@ -176,6 +176,9 @@ export function ThinkingPicker({
         disabled={disabled}
         aria-haspopup="menu"
         aria-expanded={showing}
+        // In a narrow composer the word is hidden: the tooltip and name still say what this is.
+        title={`${t("Мышление")}: ${value === undefined ? "—" : thinkingLabel(value)}`}
+        aria-label={`${t("Мышление")}: ${value === undefined ? "—" : thinkingLabel(value)}`}
         onClick={() => setOpen((o) => !o)}
       >
         <span className="ctl-label">{t("Мышление")}</span>

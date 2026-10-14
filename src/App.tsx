@@ -21,7 +21,8 @@ import { forgetProject, getRecentProjects, touchProject, type RecentProject } fr
 import { Sidebar, type View } from "./components/Sidebar";
 import { Swarm } from "./components/Swarm";
 import { Thread } from "./components/Thread";
-import { Tiles } from "./components/Tiles";
+import { TileDots, Tiles, useTilesMode } from "./components/Tiles";
+import { applyMinWindowSize } from "./lib/windowSize";
 import { Onboarding } from "./components/Onboarding";
 import { isOnboarded, markOnboarded } from "./lib/onboarding";
 import { homeDir } from "@tauri-apps/api/path";
@@ -82,6 +83,9 @@ function savedProject(): string | undefined {
 
 export default function App() {
   const settings = useSettings();
+  useEffect(() => {
+    applyMinWindowSize(settings.uiScale).catch(() => {});
+  }, [settings.uiScale]);
   const templates = useTemplates();
   const [view, setView] = useState<View>("session");
   const [project, setProject] = useState<string | undefined>(savedProject);
@@ -435,6 +439,7 @@ export default function App() {
   }, [refreshSpend]);
   const sessionPath = sessions.find((m) => m.id === s.sessionId)?.path;
   // Session cost comes from the engine; the part covered by a subscription is taken out.
+  const tilesMode = useTilesMode(settings.tilesMode, settings.uiScale);
   const sessionSpent = Math.max(0, (s.stats?.cost ?? 0) - (sessionPath ? spend.subscriptionBySession[sessionPath] ?? 0 : 0));
   const budget = useMemo(
     () => budgetState({ daySpent: spend.day, sessionSpent, daily: settings.budgetDaily, session: settings.budgetSession }),
@@ -811,8 +816,14 @@ export default function App() {
   const activeMeta = sessions.find((m) => m.id === s.sessionId);
   const title = view === "settings" ? t("Настройки") : view === "swarm" ? t("Рой агентов") : s.title ?? activeMeta?.title ?? (s.items.length ? t("Сессия") : t("Новая сессия"));
 
+  const compactContext = () => rtRef.current?.client.request({ type: "compact" }).then(() => refresh()).catch(() => {});
   const composer = (
     <Composer
+      statusSlot={
+        tilesMode === "compact" && !onboarding ? (
+          <TileDots s={s} onCompact={compactContext} />
+        ) : undefined
+      }
       disabled={!ready}
       busy={busy}
       planMode={planMode}
@@ -1171,9 +1182,7 @@ export default function App() {
         )}
       </main>
 
-      {view === "session" && settings.showTiles && !onboarding && (
-        <Tiles s={s} onCompact={() => rtRef.current?.client.request({ type: "compact" }).then(() => refresh()).catch(() => {})} />
-      )}
+      {view === "session" && tilesMode === "full" && !onboarding && <Tiles s={s} onCompact={compactContext} />}
 
       {providersOpen && (
         <ProviderModal
