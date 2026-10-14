@@ -44,5 +44,13 @@
     "category": "DeveloperTool",
     "copyright": "Copyright 2026 Octopus AI contributors",
     "shortDescription": "Desktop app for coding agents"
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEQ1RDMyODE5RUVBREREODIKUldTQzNhM3VHU2pUMWF6MU5QcUtoMXpJUTVWOFJROHVPM3RGbTJlZk85ME5NNmx3bWRPV3k5NTMK",
+      "endpoints": [
+        "https://github.com/SkvorikovCode/Octopus-AI/releases/latest/download/latest.json"
+      ]
+    }
   }
 }

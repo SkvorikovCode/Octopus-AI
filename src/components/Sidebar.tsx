@@ -38,6 +38,8 @@ type Props = {
   /** Shows the nav item only when the app wires the Connections screen. */
   onOpenConnections?: () => void;
   onRestart: () => void;
+  /** Shown above the settings button, e.g. a new release. */
+  updateSlot?: React.ReactNode;
 };
 
 const ENGINE: Record<Status, string> = {
@@ -381,6 +383,7 @@ export function Sidebar(p: Props) {
             {t("Статистика")}
           </button>
         )}
+        {p.updateSlot}
         <button className={`side-btn ${p.view === "settings" || p.view === "stats" || p.view === "connections" ? "current" : ""}`} onClick={p.onOpenSettings}>
           <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" aria-hidden="true"><circle cx="8" cy="8" r="2.4" /><path d="M8 1v2.2M8 12.8V15M1 8h2.2M12.8 8H15M3 3l1.6 1.6M11.4 11.4L13 13M3 13l1.6-1.6M11.4 4.6L13 3" /></svg>
           {t("Настройки")}

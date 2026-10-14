@@ -7,8 +7,21 @@ attaches it to a **draft** GitHub Release. Nothing is public until a maintainer 
 Release builds bundle the agent engine (oh-my-pi) so the app works out of the box. The pinned version
 and checksum live in `engine.lock`; the workflow downloads it with `scripts/fetch-engine.sh`.
 
-Current targets: macOS on Apple Silicon, unsigned (marked as a preview, with install notes in the
-release body). Everything before 1.0 is published as a pre-release.
+Current targets: macOS on Apple Silicon, unsigned (a preview, with install notes in the release
+body). Releases are **not** marked as pre-releases: the app looks for updates at
+`releases/latest/download/latest.json`, and GitHub's "latest" skips pre-releases.
+
+## In-app updates
+
+The app checks for updates five seconds after launch, every six hours, and from the menu
+(**Octopus → Check for Updates…**). The release workflow signs the update archive and publishes
+`latest.json` next to the `.dmg`. The app accepts only archives signed with the key whose public
+half is `plugins.updater.pubkey` in `src-tauri/tauri.conf.json`.
+
+The private key and its password live in the repository secrets `TAURI_SIGNING_PRIVATE_KEY` and
+`TAURI_SIGNING_PRIVATE_KEY_PASSWORD` (the maintainer keeps a copy in `~/.tauri/`). **If the key is
+lost, installed apps can never update again**: users would have to download the next version by
+hand. Back it up somewhere safe.
 
 ## Steps
 
@@ -26,7 +39,7 @@ release body). Everything before 1.0 is published as a pre-release.
 4. **Watch the `Release` run** in the Actions tab. It refuses to build if the tag is not on `main` or
    if the tag and the three version fields disagree.
 5. **Review the draft** under Releases: download the `.dmg`, open it on a clean Mac, check the notes,
-   then press **Publish release**.
+   then press **Publish release**. Publishing is what makes installed apps see the update.
 
 A broken tag is fixed by deleting the draft and the tag (`git push --delete origin v0.1.0`),
 correcting `main`, and tagging again.
