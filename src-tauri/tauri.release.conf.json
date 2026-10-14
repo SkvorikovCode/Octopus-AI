@@ -1,7 +1,12 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "bundle": {
-    "externalBin": ["binaries/omp"],
-    "resources": ["engine-licenses/*"]
+    "externalBin": [
+      "binaries/omp"
+    ],
+    "resources": [
+      "engine-licenses/*"
+    ],
+    "createUpdaterArtifacts": true
   }
 }

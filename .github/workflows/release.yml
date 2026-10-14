@@ -48,22 +48,33 @@ jobs:
         with:
           workspaces: src-tauri
       - run: npm ci
+      - name: Update signing key must be set
+        env:
+          KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+        run: '[ -n "$KEY" ] || { echo "::error::Secret TAURI_SIGNING_PRIVATE_KEY is missing (see RELEASING.md)"; exit 1; }'
+
       - name: Fetch the agent engine (pinned in engine.lock, checksum verified)
         run: scripts/fetch-engine.sh
 
       - uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Signs the update archive; the app checks it against the public key in tauri.conf.json.
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
           tagName: ${{ github.ref_name }}
           releaseName: Octopus AI ${{ github.ref_name }}
           releaseDraft: true
-          # Everything before 1.0 is a preview.
-          prerelease: ${{ startsWith(github.ref_name, 'v0.') }}
+          # Not a pre-release: the app looks for updates at releases/latest, which skips pre-releases.
+          prerelease: false
+          # latest.json: the update feed the app reads.
+          includeUpdaterJson: true
           args: --target aarch64-apple-darwin --config src-tauri/tauri.release.conf.json
           releaseBody: |
             **Preview build for Apple Silicon Macs (macOS 11+).** Not signed or notarized yet.
-            The agent engine is bundled, so there is nothing else to install.
+            The agent engine is bundled, so there is nothing else to install. Later versions arrive
+            as in-app updates.
 
             ### Install
             1. Download the `.dmg` below and drag Octopus into Applications.

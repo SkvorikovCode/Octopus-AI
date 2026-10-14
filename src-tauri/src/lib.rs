@@ -5,6 +5,7 @@ mod providers;
 mod pty;
 mod rules;
 mod search;
+mod shell;
 mod sessions;
 mod checkpoints;
 mod files;
@@ -15,15 +16,27 @@ mod workspace;
 mod worktrees;
 
 use tauri::Manager;
+use tauri_plugin_window_state::StateFlags;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        // Must come first: a second launch only brings the running app forward.
+        .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| shell::show_main(app)))
+        .plugin(
+            // Size and position survive restarts; visibility doesn't (the app quits with the window hidden).
+            tauri_plugin_window_state::Builder::default()
+                .with_state_flags(StateFlags::all() & !StateFlags::VISIBLE)
+                .build(),
+        )
+        .plugin(tauri_plugin_updater::Builder::new().build())
+        .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_notification::init())
         .manage(omp::OmpState::default())
         .manage(pty::PtyState::default())
+        .manage(shell::ShellState::default())
         .invoke_handler(tauri::generate_handler![
             omp::omp_locate,
             omp::omp_start,
@@ -74,13 +87,17 @@ pub fn run() {
             rules::rules_list,
             rules::rule_save,
             rules::rule_delete,
+            shell::app_set_busy,
+            shell::app_quit,
         ])
         .on_window_event(|window, event| {
+            shell::on_window_event(window, event);
             if let tauri::WindowEvent::Destroyed = event {
                 window.state::<omp::OmpState>().shutdown();
                 window.state::<pty::PtyState>().shutdown();
             }
         })
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+        .build(tauri::generate_context!())
+        .expect("error while building tauri application")
+        .run(|app, event| shell::on_run_event(app, &event));
 }

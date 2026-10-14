@@ -23,6 +23,8 @@ import { Swarm } from "./components/Swarm";
 import { Thread } from "./components/Thread";
 import { TileDots, Tiles, useTilesMode } from "./components/Tiles";
 import { applyMinWindowSize } from "./lib/windowSize";
+import { findUpdate, listenQuitRequests, reportBusy, sayUpToDate, sayUpdateFailed, setAppMenu, type Update } from "./lib/appShell";
+import { UpdateCard } from "./components/UpdateCard";
 import { Onboarding } from "./components/Onboarding";
 import { isOnboarded, markOnboarded } from "./lib/onboarding";
 import { homeDir } from "@tauri-apps/api/path";
@@ -780,6 +782,42 @@ export default function App() {
     return map;
   }, [runtimesVersion, s.status, s.sessionId]);
 
+  // Native shell: quitting asks while any agent (in any session) works or waits for an answer.
+  const anyBusy = [...runtimes.current.values()].some((r) => !r.disposed && r.busy);
+  useEffect(() => reportBusy(anyBusy), [anyBusy]);
+  useEffect(() => listenQuitRequests(), []);
+
+  // Updates: a quiet check shortly after launch and every 6 hours; the menu checks out loud.
+  const [update, setUpdate] = useState<Update | null>(null);
+  const checkUpdates = useRef(async (manual: boolean) => {
+    try {
+      const u = await findUpdate();
+      if (u) setUpdate(u);
+      else if (manual) await sayUpToDate();
+    } catch (e) {
+      if (manual) await sayUpdateFailed(e);
+    }
+  });
+  useEffect(() => {
+    const first = setTimeout(() => checkUpdates.current(false), 5000);
+    const every = setInterval(() => checkUpdates.current(false), 6 * 3600e3);
+    return () => {
+      clearTimeout(first);
+      clearInterval(every);
+    };
+  }, []);
+
+  // Menu bar items call the newest handlers; the menu is rebuilt when the language changes.
+  const menuActions = useRef({ newSession: () => {}, openSettings: () => {} });
+  menuActions.current = { newSession: () => ready && newSession(), openSettings: () => openSettings() };
+  useEffect(() => {
+    setAppMenu({
+      newSession: () => menuActions.current.newSession(),
+      openSettings: () => menuActions.current.openSettings(),
+      checkUpdates: () => void checkUpdates.current(true),
+    }).catch(() => {});
+  }, [settings.language]);
+
   // ⌘N — new session; ⌥⌘J — engine protocol log (dev builds only).
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -1122,6 +1160,7 @@ export default function App() {
   return (
     <div className="app">
       <Sidebar
+        updateSlot={update ? <UpdateCard update={update} busy={anyBusy} /> : undefined}
         project={project}
         status={s.status}
         activity={sessionActivity}
