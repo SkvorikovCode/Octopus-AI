@@ -848,7 +848,8 @@ export default function App() {
   const counts = swarmCounts(swarm);
   // Show the changes card only after the agent touched files in this session.
   const touched = s.items.some((it) => it.kind === "steps" && it.steps.some((st) => /write|edit|patch|bash|shell|apply/i.test(st.name)));
-  const needKeys = failure?.text.includes("No models available");
+  // No model configured yet (a fresh install): the engine wording changed between versions.
+  const needKeys = /No models available|No default model selected/.test(failure?.text ?? "");
   const lastReply = [...s.items].reverse().find((it) => it.kind === "assistant" && it.text.trim()) as { text: string } | undefined;
   const projectName = project?.split("/").filter(Boolean).pop();
   const activeMeta = sessions.find((m) => m.id === s.sessionId);
