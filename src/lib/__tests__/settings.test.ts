@@ -16,7 +16,7 @@ const DEFAULTS = {
   notifications: true,
   sendWith: "enter",
   thinkingExpanded: false,
-  showTiles: true,
+  tilesMode: "full",
   language: "auto",
   theme: "dark",
   budgetDaily: null,
@@ -136,9 +136,16 @@ describe("updateSettings", () => {
 
   it("keeps the other fields when patching a single field", () => {
     const before = s.getSettings();
-    s.updateSettings({ showTiles: false });
+    s.updateSettings({ tilesMode: "compact" });
     expect(s.getSettings()).not.toBe(before);
-    expect(before.showTiles).toBe(true);
+    expect(before.tilesMode).toBe("full");
+  });
+
+  it("maps the old tiles switch turned off to the compact mode", async () => {
+    localStorage.setItem(KEY, JSON.stringify({ showTiles: false }));
+    s = await load();
+    expect(s.getSettings().tilesMode).toBe("compact");
+    expect(s.getSettings()).not.toHaveProperty("showTiles");
   });
 });
 

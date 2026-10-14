@@ -224,7 +224,7 @@ input, textarea { font: inherit; color: inherit; background: none; border: 0; ou
 .icon-btn.active { color: var(--accent-ink); }
 
 .scroll { flex: 1; overflow-y: auto; padding: 12px 12px 24px; }
-.thread { max-width: 720px; margin: 0 auto; display: flex; flex-direction: column; gap: 22px; }
+.thread { max-width: 720px; margin: 0 auto; display: flex; flex-direction: column; gap: 22px; padding-bottom: 8px; }
 
 .msg-user {
   align-self: flex-end; max-width: 82%; background: var(--raise);
@@ -316,6 +316,31 @@ input, textarea { font: inherit; color: inherit; background: none; border: 0; ou
 }
 .send.stop { background: var(--raise); color: var(--ink); border: 1px solid var(--line-3); }
 .hint { text-align: center; font-size: 11px; color: var(--mute); padding: 6px 0 2px; font-family: var(--mono); }
+/* Hint line with the compact tiles: text stays centered, rings pinned right; text yields first. */
+.composer-wrap { container-type: inline-size; }
+.hint.has-status {
+  display: grid; grid-template-columns: 1fr minmax(0, max-content) 1fr; align-items: center; gap: 10px;
+  padding-top: 4px;
+}
+.hint.has-status .hint-text { grid-column: 2; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hint-status { grid-column: 3; justify-self: end; }
+@container (max-width: 520px) {
+  .hint.has-status .hint-text { visibility: hidden; }
+}
+
+/* Compact tiles: rings under the composer, each opens its tile above. */
+.tdots { position: relative; display: flex; align-items: center; gap: 2px; text-align: left; font-family: var(--ui); }
+.tdot {
+  width: 28px; height: 28px; padding: 0; border: 0; border-radius: 50%;
+  display: grid; place-items: center; background: transparent; cursor: pointer;
+}
+.tdot:hover, .tdot.on { background: var(--panel-2); }
+.tdot-pop {
+  position: absolute; right: 0; bottom: calc(100% + 10px); z-index: 30;
+  width: 292px; max-width: calc(100vw - 48px);
+  font-size: 15px; color: var(--ink);
+}
+.tdot-pop > .card { box-shadow: var(--shadow-pop); }
 
 /* ---------- tiles ---------- */
 
@@ -357,10 +382,6 @@ input, textarea { font: inherit; color: inherit; background: none; border: 0; ou
 
 @media (prefers-reduced-motion: reduce) {
   .pulse, .spin, .orbit, .eye, .cursor { animation: none; }
-}
-
-@media (max-width: 1180px) {
-  .tiles { display: none; }
 }
 
 .changes-dock { max-width: 720px; width: 100%; margin: 0 auto 10px; padding: 0 12px; box-sizing: border-box; }

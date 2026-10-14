@@ -1,13 +1,13 @@
 /* Chat thread details: expandable step rows, their args/output panels, reasoning toggle. All classes prefixed with .th- */
 
 /* Step rows become real buttons; reset native button look, keep the .step layout from styles.css */
-.steps-list .th-step-wrap { display: flex; flex-direction: column; min-width: 0; }
-.steps-list .th-step-btn {
+.steps-list .th-step-wrap, .th-tl .th-step-wrap { display: flex; flex-direction: column; min-width: 0; }
+.steps-list .th-step-btn, .th-tl .th-step-btn {
   width: 100%; box-sizing: border-box; margin: 0; border: 0; border-radius: 0;
   background: none; color: inherit; font: inherit; text-align: left; cursor: pointer;
 }
-.steps-list .th-step-btn:hover { background: var(--raise); }
-.steps-list .th-step-btn:focus-visible { outline: 2px solid var(--accent-ink); outline-offset: -2px; }
+.steps-list .th-step-btn:hover, .th-tl .th-step-btn:hover { background: var(--raise); }
+.steps-list .th-step-btn:focus-visible, .th-tl .th-step-btn:focus-visible { outline: 2px solid var(--accent-ink); outline-offset: -2px; }
 
 .th-dur { font-family: var(--mono); font-size: 11px; color: var(--mute); white-space: nowrap; }
 .th-chev { display: flex; flex-shrink: 0; color: var(--mute); }
@@ -63,7 +63,10 @@
 }
 
 /* Message actions (copy, retry). Invisible until hover or focus inside the message, but still focusable. */
-.th-msg-user { display: flex; flex-direction: column; align-items: flex-end; min-width: 0; }
+.th-msg-user { position: relative; display: flex; flex-direction: column; align-items: flex-end; min-width: 0; }
+/* Under the user's bubble the actions hang into the gap to the next item instead of taking a row. */
+.th-msg-user .th-actions { position: absolute; top: 100%; right: 0; margin-top: 0; z-index: 1; }
+.th-msg-user .th-act { height: 22px; }
 .th-actions {
   display: flex; align-items: center; gap: 4px; margin-top: 4px;
   opacity: 0; transition: opacity 120ms ease;
@@ -94,6 +97,8 @@
    fully laid out so the bottom is exact for stick-to-bottom scrolling. */
 .thread > :not(.th-more) { content-visibility: auto; contain-intrinsic-size: auto 120px; }
 .thread > :nth-last-child(-n + 3) { content-visibility: visible; }
+/* User messages are light; their actions overflow the box, which paint containment would clip. */
+.thread > .th-msg-user { content-visibility: visible; }
 /* Earlier messages load above the viewport; Thread keeps the scroll position itself. */
 .th-scroll { overflow-anchor: none; }
 .th-more { align-self: center; }
@@ -104,3 +109,36 @@
   border-radius: 999px; font-size: 11px; font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.04em;
   color: var(--accent-ink); background: var(--accent-soft); vertical-align: 2px;
 }
+
+/* One agent turn: a "work" block (thinking, steps, remarks), then the answer, questions, errors. */
+.th-work { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.th-work-head { cursor: pointer; background: none; font: inherit; font-size: 13px; }
+.th-work-head:hover:not(:disabled) { border-color: var(--dim); color: var(--ink-2); }
+.th-work-head:disabled { cursor: default; opacity: 1; }
+.th-work-head.live { color: var(--ink-2); }
+
+.th-tl {
+  display: flex; flex-direction: column; gap: 2px; min-width: 0;
+  margin-left: 16px; padding-left: 14px; border-left: 2px solid var(--line-2);
+  font-size: 13px;
+}
+.th-tl .step { padding: 4px 8px; border-radius: 8px; gap: 10px; }
+.th-tl .th-step-detail { margin: 2px 0 8px 30px; }
+.th-tl .th-think { padding: 2px 0; }
+.th-tl-more { align-self: flex-start; margin-left: -8px; }
+
+/* What the agent said between steps: quieter than the answer. */
+.th-say { padding: 4px 0; font-size: 14px; line-height: 1.55; color: var(--ink-2); }
+.th-say .md p { margin-bottom: 6px; }
+
+/* Answered question or approval, as one line in the timeline */
+.th-tl-asked { display: flex; align-items: baseline; gap: 8px; min-width: 0; padding: 4px 8px; font-size: 12px; }
+.th-tl-asked-a { flex: none; font-family: var(--mono); color: var(--ink-3); }
+.th-tl-asked-q { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--mono); color: var(--mute); }
+
+/* Compact question card: the one thing in the turn that needs you */
+.msg-agent .ask { padding: 14px 16px; gap: 10px; box-shadow: none; }
+.msg-agent .ask-title { font-size: 14.5px; }
+.msg-agent .ask-actions { justify-content: flex-end; }
+.msg-agent .ask-actions .btn { height: 32px; padding: 0 14px; font-size: 13px; }
+.msg-agent .ask-actions input + .btn { margin-left: 0; }

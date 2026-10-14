@@ -91,16 +91,16 @@
 .cmp-tools { flex: 1; min-width: 0; display: flex; flex-wrap: nowrap; align-items: center; gap: 6px; }
 .cmp-tools > * { flex-shrink: 0; }
 /* Only the model name gives way when space runs out (menus open above, so no clipping). */
-.cmp-tools > .mpk-wrap { flex-shrink: 1; min-width: 0; }
+.cmp-tools > .mpk-wrap { flex-shrink: 1; min-width: 64px; }
 .cmp-tools .mpk-chip { max-width: 100%; }
 .cmp-actions { flex: none; display: flex; align-items: center; gap: 6px; }
 /* Mode toggles are square icons; "on" is the accent fill (the placeholder / hint
    under the field say what the mode does). */
 .composer-bar .cmp-toggle { width: 32px; min-width: 32px; padding: 0; justify-content: center; }
 .composer .cmp-tools .mpk-chip { min-width: 64px; }
-/* Narrow composer: drop the words, keep values and icons. */
-/* The model name shortens first (it shrinks); words go only when it's really tight. */
-@container (max-width: 440px) {
+/* Narrow composer: drop the words, keep values and icons. With the words the row needs ~540px
+   and the model name gets cut to "C…" well before that, so they go below 600px. */
+@container (max-width: 600px) {
   .composer .ctl-label { display: none; }
 }
 
