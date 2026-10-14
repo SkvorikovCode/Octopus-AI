@@ -240,6 +240,8 @@ export default function App() {
           const client = rt.client;
           rt.dispatch({ type: "status", status: "idle" });
           client.request({ type: "negotiate_protocol", protocolVersion: 2 }).catch(() => {});
+          // The thread only reads each update's delta; by default every token also carries the whole reply so far, twice.
+          client.request({ type: "set_event_filter", events: null, messageUpdates: "delta" }).catch(() => {});
           client.request({ type: "set_subagent_subscription", level: "progress" }).catch(() => {});
           // Requests covered by a subscription stay out of the budget.
           flatRateProviders((cmd) => client.request(cmd)).then((ids) => {
