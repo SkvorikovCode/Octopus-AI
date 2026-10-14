@@ -83,7 +83,9 @@ function groupTitle(g: Group): string {
 function PinGlyph() {
   return (
     <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeDasharray="0 3" aria-hidden="true">
-      <path d="M5 2h6M6.5 2v4.5L4.5 9h7L9.5 6.5V2M8 9v5" />
+      {/* Pushpin: a dotted head and a short needle, readable at 13px. */}
+      <circle cx="8" cy="6" r="4" />
+      <path d="M8 10.5V15" />
     </svg>
   );
 }

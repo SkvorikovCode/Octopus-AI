@@ -19,6 +19,12 @@
 .session-row .session-acts.armed { display: flex; }
 .session-row:hover .session-item:not(.session-item-edit),
 .session-row:focus-within .session-item:not(.session-item-edit) { padding-right: 84px; }
+/* Room for the actions: three buttons, or four with delete (22px each + gaps + padding). */
+.session-row:has(.session-del):hover .session-item:not(.session-item-edit),
+.session-row:has(.session-del):focus-within .session-item:not(.session-item-edit) { padding-right: 108px; }
+/* "удалить?" confirmation: the widest set, shown without hover too. */
+.session-row:has(.session-del.armed) .session-item:not(.session-item-edit) { padding-right: 148px; }
+.session-row:has(.session-del.armed) .session-item:not(.session-item-edit) .session-time { display: none; }
 .session-row:hover .session-item:not(.session-item-edit) .session-time,
 .session-row:focus-within .session-item:not(.session-item-edit) .session-time { display: none; }
 
