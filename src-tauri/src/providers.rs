@@ -574,9 +574,13 @@ fn discover(base_url: &str, api: &str, api_key: &str) -> Result<Vec<String>, Str
 // ---------- Tauri commands and public API ----------
 
 #[tauri::command]
-pub fn providers_list() -> Result<Vec<ProviderInfo>, String> {
-    let doc = load_doc(&models_path()?)?;
-    Ok(list_providers(&doc))
+pub async fn providers_list() -> Result<Vec<ProviderInfo>, String> {
+    tauri::async_runtime::spawn_blocking(|| {
+        let doc = load_doc(&models_path()?)?;
+        Ok(list_providers(&doc))
+    })
+    .await
+    .map_err(|e| e.to_string())?
 }
 
 #[tauri::command]
