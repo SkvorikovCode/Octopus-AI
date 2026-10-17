@@ -56,7 +56,7 @@ jobs:
       - name: Fetch the agent engine (pinned in engine.lock, checksum verified)
         run: scripts/fetch-engine.sh
 
-      - uses: tauri-apps/tauri-action@v0
+      - uses: tauri-apps/tauri-action@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # Signs the update archive; the app checks it against the public key in tauri.conf.json.
