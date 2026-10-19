@@ -1,20 +1,24 @@
 version: 2
+# Monthly and grouped: at most one PR per ecosystem each month.
 updates:
   - package-ecosystem: npm
     directory: /
-    schedule: { interval: weekly }
+    schedule: { interval: monthly }
     commit-message: { prefix: "chore(deps)" }
     groups:
       npm-minor-patch:
         update-types: [minor, patch]
   - package-ecosystem: cargo
     directory: /src-tauri
-    schedule: { interval: weekly }
+    schedule: { interval: monthly }
     commit-message: { prefix: "chore(deps)" }
     groups:
       cargo-minor-patch:
         update-types: [minor, patch]
   - package-ecosystem: github-actions
     directory: /
-    schedule: { interval: weekly }
+    schedule: { interval: monthly }
     commit-message: { prefix: "ci" }
+    groups:
+      github-actions:
+        patterns: ["*"]
