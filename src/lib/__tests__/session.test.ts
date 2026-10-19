@@ -646,6 +646,17 @@ describe("debug log", () => {
     expect(JSON.parse(s.log[0].text)).toEqual(notice);
   });
 
+  it("release builds keep no log", () => {
+    vi.stubEnv("DEV", false);
+    try {
+      const s = run(initialSession, fr({ type: "notice", message: "hi" }), { type: "log", line: { dir: "out", text: "cmd" } });
+      expect(s.log).toEqual([]);
+      expect(s.items).toHaveLength(1);
+    } finally {
+      vi.unstubAllEnvs();
+    }
+  });
+
   it("the log action appends lines and keeps only the newest 500", () => {
     let s = initialSession;
     for (let i = 0; i < 501; i++) s = run(s, { type: "log", line: { dir: "out", text: `l${i}` } });

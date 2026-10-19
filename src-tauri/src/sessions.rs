@@ -2,9 +2,11 @@
 //! files with a title and a first-user-message preview, newest first. Only the
 //! first lines of each file are read, so listing stays cheap for huge logs.
 
+use std::collections::HashMap;
 use std::fs::{self, File};
 use std::io::{BufRead, BufReader, Read};
 use std::path::{Path, PathBuf};
+use std::sync::Mutex;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 use serde_json::Value;
@@ -17,7 +19,7 @@ const PREVIEW_CHARS: usize = 140;
 pub(crate) const TITLE_PREVIEW_CHARS: usize = 60;
 const UNTITLED: &str = "Без названия";
 
-#[derive(serde::Serialize)]
+#[derive(Clone, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SessionMeta {
     pub(crate) path: String,
@@ -30,33 +32,118 @@ pub struct SessionMeta {
 
 /// Lists saved sessions, optionally only those recorded for `cwd`.
 #[tauri::command]
-pub fn sessions_list(cwd: Option<String>) -> Vec<SessionMeta> {
-    let Some(root) = sessions_root() else {
-        return Vec::new();
-    };
-    let filter = cwd.as_deref().filter(|s| !s.is_empty());
+pub async fn sessions_list(cwd: Option<String>) -> Vec<SessionMeta> {
+    tauri::async_runtime::spawn_blocking(move || {
+        sessions_root().map_or_else(Vec::new, |root| list_in(&root, cwd.as_deref()))
+    })
+    .await
+    .unwrap_or_default()
+}
 
-    let mut out = Vec::new();
+/// Sessions of each of `cwds`, one list per entry in the same order.
+#[tauri::command]
+pub async fn sessions_list_many(cwds: Vec<String>) -> Vec<Vec<SessionMeta>> {
+    let n = cwds.len();
+    tauri::async_runtime::spawn_blocking(move || match sessions_root() {
+        Some(root) => list_many_in(&root, &cwds),
+        None => vec![Vec::new(); cwds.len()],
+    })
+    .await
+    .unwrap_or_else(|_| vec![Vec::new(); n])
+}
+
+pub(crate) fn list_in(root: &Path, cwd: Option<&str>) -> Vec<SessionMeta> {
+    match cwd.filter(|s| !s.is_empty()) {
+        Some(want) => list_many_in(root, &[want.to_string()]).pop().unwrap_or_default(),
+        None => {
+            let mut out = Vec::new();
+            for_each_meta(root, |meta| out.push(meta));
+            newest_first(out)
+        }
+    }
+}
+
+/// One walk of the sessions directory for all `cwds`. Each wanted folder is
+/// canonicalized once per call and each session's folder once per file; an
+/// empty entry matches every session, as `list_in(root, None)` does.
+pub(crate) fn list_many_in(root: &Path, cwds: &[String]) -> Vec<Vec<SessionMeta>> {
+    let wanted: Vec<Option<PathBuf>> = cwds.iter().map(|c| fs::canonicalize(c).ok()).collect();
+    let mut out: Vec<Vec<SessionMeta>> = vec![Vec::new(); cwds.len()];
+    for_each_meta(root, |meta| {
+        let canon = fs::canonicalize(&meta.cwd).ok();
+        for (i, want) in cwds.iter().enumerate() {
+            if want.is_empty() || same_cwd_canon(&meta.cwd, canon.as_deref(), want, wanted[i].as_deref()) {
+                out[i].push(meta.clone());
+            }
+        }
+    });
+    out.into_iter().map(newest_first).collect()
+}
+
+fn newest_first(mut list: Vec<SessionMeta>) -> Vec<SessionMeta> {
+    list.sort_by_key(|m| std::cmp::Reverse(m.updated_at));
+    list.truncate(MAX_RESULTS);
+    list
+}
+
+/// Calls `f` with the head of every session file under `root` that has a user message.
+fn for_each_meta(root: &Path, mut f: impl FnMut(SessionMeta)) {
+    let mut cache = META_CACHE.lock().unwrap_or_else(|e| e.into_inner());
+    let mut old = cache.take().unwrap_or_default();
+    let mut fresh = HashMap::with_capacity(old.len());
+
     // Exactly one level of subdirectories, each holding *.jsonl files.
-    for dir in fs::read_dir(&root).into_iter().flatten().flatten() {
+    for dir in fs::read_dir(root).into_iter().flatten().flatten() {
         for file in fs::read_dir(dir.path()).into_iter().flatten().flatten() {
             let path = file.path();
             if path.extension().and_then(|e| e.to_str()) != Some("jsonl") {
                 continue;
             }
-            let Some(meta) = read_meta(&path) else {
-                continue;
-            };
-            if filter.is_some_and(|want| !same_cwd(&meta.cwd, want)) {
-                continue;
+            if let Some(meta) = cached_meta(&path, &mut old, &mut fresh) {
+                f(meta);
             }
-            out.push(meta);
         }
     }
+    // Whatever is left of `root` was deleted; entries of other roots stay.
+    old.retain(|p, _| !p.starts_with(root));
+    fresh.extend(old);
+    *cache = Some(fresh);
+}
 
-    out.sort_by_key(|m| std::cmp::Reverse(m.updated_at));
-    out.truncate(MAX_RESULTS);
-    out
+struct CachedMeta {
+    len: u64,
+    modified: SystemTime,
+    meta: Option<SessionMeta>,
+}
+
+/// `read_meta` results by path. Session files only grow, so while a file's size
+/// and mtime stay the same its head does too. Every listing drops the entries
+/// of files that are gone.
+static META_CACHE: Mutex<Option<HashMap<PathBuf, CachedMeta>>> = Mutex::new(None);
+
+/// `read_meta`, reusing the previous listing's result for an unchanged file.
+fn cached_meta(
+    path: &Path,
+    old: &mut HashMap<PathBuf, CachedMeta>,
+    fresh: &mut HashMap<PathBuf, CachedMeta>,
+) -> Option<SessionMeta> {
+    let Some((len, modified)) = fs::metadata(path)
+        .ok()
+        .and_then(|m| Some((m.len(), m.modified().ok()?)))
+    else {
+        return read_meta(path);
+    };
+    let entry = match old.remove(path) {
+        Some(c) if c.len == len && c.modified == modified => c,
+        _ => CachedMeta {
+            len,
+            modified,
+            meta: read_meta(path),
+        },
+    };
+    let meta = entry.meta.clone();
+    fresh.insert(path.to_path_buf(), entry);
+    meta
 }
 
 pub(crate) fn sessions_root() -> Option<PathBuf> {
@@ -207,6 +294,14 @@ fn text(v: Option<&Value>) -> Option<String> {
 pub(crate) fn same_cwd(a: &str, b: &str) -> bool {
     match (fs::canonicalize(a), fs::canonicalize(b)) {
         (Ok(x), Ok(y)) => x == y,
+        _ => a.trim_end_matches('/') == b.trim_end_matches('/'),
+    }
+}
+
+/// `same_cwd` with the canonical forms already computed by the caller.
+fn same_cwd_canon(a: &str, canon_a: Option<&Path>, b: &str, canon_b: Option<&Path>) -> bool {
+    match (canon_a, canon_b) {
+        (Some(x), Some(y)) => x == y,
         _ => a.trim_end_matches('/') == b.trim_end_matches('/'),
     }
 }
@@ -372,7 +467,8 @@ mod real_data {
     #[ignore] // reads the developer's real ~/.omp data; run with --ignored
     fn smoke() {
         let t = Instant::now();
-        let all = sessions_list(None);
+        let root = sessions_root().expect("HOME is set");
+        let all = list_in(&root, None);
         println!(
             "[sessions] sessions_list(None): {} sessions in {} ms",
             all.len(),
@@ -399,7 +495,7 @@ mod real_data {
         if let Some(first) = all.first() {
             let want = first.cwd.clone();
             let t = Instant::now();
-            let filtered = sessions_list(Some(want.clone()));
+            let filtered = list_in(&root, Some(want.as_str()));
             println!(
                 "[sessions] sessions_list(Some({want})): {} sessions in {} ms",
                 filtered.len(),
@@ -414,7 +510,7 @@ mod real_data {
         // Octopus-AI itself: a project with no recorded sessions should give none.
         let octo = home_path("Documents/GitHub/Octopus-AI");
         let t = Instant::now();
-        let octo_list = sessions_list(Some(octo.clone()));
+        let octo_list = list_in(&root, Some(octo.as_str()));
         println!(
             "[sessions] sessions_list(Some(Octopus-AI)): {} sessions in {} ms",
             octo_list.len(),
@@ -644,5 +740,88 @@ mod prune_tests {
         assert_eq!(prune_empty_in(&t.0, CWD, None, later()), 0);
         assert!(real.exists());
         assert!(outside.0.join("enc-out").join("s.jsonl").exists());
+    }
+}
+
+#[cfg(test)]
+mod cache_tests {
+    use super::*;
+    use std::io::Write;
+
+    const CWD: &str = "/nonexistent-octopus-meta-cache/project";
+
+    fn session(task: &str) -> String {
+        format!(
+            "{{\"type\":\"session\",\"id\":\"s1\",\"cwd\":\"{CWD}\"}}\n\
+             {{\"type\":\"message\",\"message\":{{\"role\":\"user\",\"content\":\"{task}\"}}}}\n"
+        )
+    }
+
+    #[test]
+    fn listing_rereads_only_changed_files_and_forgets_deleted_ones() {
+        let root = std::env::temp_dir().join(format!("octopus-meta-cache-{}", std::process::id()));
+        let _ = fs::remove_dir_all(&root);
+        fs::create_dir_all(root.join("project")).unwrap();
+        let path = root.join("project").join("s1.jsonl");
+        fs::write(&path, session("first task")).unwrap();
+        let titles = || list_in(&root, Some(CWD)).into_iter().map(|m| m.title).collect::<Vec<_>>();
+        assert_eq!(titles(), ["first task"]);
+
+        // Same size and mtime, other bytes: the cached head stands.
+        let modified = fs::metadata(&path).unwrap().modified().unwrap();
+        fs::write(&path, session("other task")).unwrap();
+        File::options().write(true).open(&path).unwrap().set_modified(modified).unwrap();
+        assert_eq!(titles(), ["first task"]);
+
+        // A rename appends a title line: the size changes and the head is read again.
+        let mut file = File::options().append(true).open(&path).unwrap();
+        writeln!(file, "{{\"type\":\"title\",\"title\":\"Renamed\"}}").unwrap();
+        drop(file);
+        assert_eq!(titles(), ["Renamed"]);
+
+        // A deleted file leaves both the list and the cache.
+        fs::remove_file(&path).unwrap();
+        assert!(titles().is_empty());
+        let cache = META_CACHE.lock().unwrap();
+        assert!(!cache.as_ref().unwrap().contains_key(&path));
+        drop(cache);
+        let _ = fs::remove_dir_all(&root);
+    }
+
+    #[test]
+    fn one_walk_lists_each_folder_in_order() {
+        let root = std::env::temp_dir().join(format!("octopus-list-many-{}", std::process::id()));
+        let _ = fs::remove_dir_all(&root);
+        fs::create_dir_all(root.join("dir")).unwrap();
+        let write = |name: &str, cwd: &str, task: &str, secs: u64| {
+            let path = root.join("dir").join(name);
+            fs::write(
+                &path,
+                format!(
+                    "{{\"type\":\"session\",\"id\":\"{name}\",\"cwd\":\"{cwd}\"}}\n\
+                     {{\"type\":\"message\",\"message\":{{\"role\":\"user\",\"content\":\"{task}\"}}}}\n"
+                ),
+            )
+            .unwrap();
+            let at = UNIX_EPOCH + Duration::from_secs(1_760_000_000 + secs);
+            File::options().write(true).open(&path).unwrap().set_modified(at).unwrap();
+        };
+        let (project, copy) = ("/nonexistent-octopus-many/project", "/nonexistent-octopus-many/copy");
+        write("a.jsonl", project, "older", 10);
+        write("b.jsonl", project, "newer", 20);
+        write("c.jsonl", copy, "in the copy", 15);
+        write("d.jsonl", "/nonexistent-octopus-many/other", "elsewhere", 30);
+
+        let wanted = [project.to_string(), format!("{copy}/"), "/nonexistent-octopus-many/none".to_string()];
+        let titles = |list: &[SessionMeta]| list.iter().map(|m| m.title.clone()).collect::<Vec<_>>();
+        let lists = list_many_in(&root, &wanted);
+        assert_eq!(lists.len(), 3);
+        assert_eq!(titles(&lists[0]), ["newer", "older"]);
+        assert_eq!(titles(&lists[1]), ["in the copy"]);
+        assert!(lists[2].is_empty());
+        for (list, cwd) in lists.iter().zip(&wanted) {
+            assert_eq!(titles(list), titles(&list_in(&root, Some(cwd.as_str()))));
+        }
+        let _ = fs::remove_dir_all(&root);
     }
 }

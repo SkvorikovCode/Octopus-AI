@@ -43,6 +43,7 @@ pub fn run() {
             omp::omp_send,
             omp::omp_stop,
             sessions::sessions_list,
+            sessions::sessions_list_many,
             sessions::session_delete,
             sessions::sessions_prune_empty,
             search::sessions_search,

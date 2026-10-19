@@ -49,7 +49,7 @@ import { allowOverSession, allowOverToday, budgetState, isOverAllowed, setFlatRa
 import { flatRateProviders } from "./lib/subscriptions";
 import { applyWorktree, createWorktree, listWorktrees, removeWorktree } from "./lib/worktrees";
 import type { Subagent } from "./lib/swarm";
-import { listSessions, type SessionMeta } from "./lib/sessions";
+import { listSessionsMany, type SessionMeta } from "./lib/sessions";
 import { searchSessions } from "./lib/search";
 import { initialSwarm, swarmCounts } from "./lib/swarm";
 import { t, tErr } from "./lib/i18n";
@@ -188,19 +188,18 @@ export default function App() {
       }
       return setSessions([...live, ...DEMO_SESSIONS]);
     }
-    Promise.all([
-      listSessions(cwd).catch(() => [] as SessionMeta[]),
-      listWorktrees(cwd).catch(() => []),
-    ]).then(async ([main, copies]) => {
+    // One walk of the sessions directory for the project and all its worktree copies.
+    listWorktrees(cwd).catch(() => []).then(async (copies) => {
+      const lists = await listSessionsMany([cwd, ...copies.map((wt) => wt.path)]).catch(() => [] as SessionMeta[][]);
+      const main = lists[0] ?? [];
       const map = new Map<string, string>();
       const extra: SessionMeta[] = [];
-      for (const wt of copies) {
-        const list = await listSessions(wt.path).catch(() => [] as SessionMeta[]);
-        for (const m of list) {
+      copies.forEach((wt, i) => {
+        for (const m of lists[i + 1] ?? []) {
           map.set(m.id, wt.branch);
           extra.push(m);
         }
-      }
+      });
       setWorktreeOf(map);
       setSessions([...main, ...extra].sort((a, b) => b.updatedAt - a.updatedAt));
     });
