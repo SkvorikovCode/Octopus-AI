@@ -2,9 +2,11 @@
 //! files with a title and a first-user-message preview, newest first. Only the
 //! first lines of each file are read, so listing stays cheap for huge logs.
 
+use std::collections::HashMap;
 use std::fs::{self, File};
 use std::io::{BufRead, BufReader, Read};
 use std::path::{Path, PathBuf};
+use std::sync::Mutex;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 use serde_json::Value;
@@ -17,7 +19,7 @@ const PREVIEW_CHARS: usize = 140;
 pub(crate) const TITLE_PREVIEW_CHARS: usize = 60;
 const UNTITLED: &str = "Без названия";
 
-#[derive(serde::Serialize)]
+#[derive(Clone, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SessionMeta {
     pub(crate) path: String,
@@ -34,17 +36,25 @@ pub fn sessions_list(cwd: Option<String>) -> Vec<SessionMeta> {
     let Some(root) = sessions_root() else {
         return Vec::new();
     };
-    let filter = cwd.as_deref().filter(|s| !s.is_empty());
+    list_in(&root, cwd.as_deref())
+}
+
+pub(crate) fn list_in(root: &Path, cwd: Option<&str>) -> Vec<SessionMeta> {
+    let filter = cwd.filter(|s| !s.is_empty());
+
+    let mut cache = META_CACHE.lock().unwrap_or_else(|e| e.into_inner());
+    let mut old = cache.take().unwrap_or_default();
+    let mut fresh = HashMap::with_capacity(old.len());
 
     let mut out = Vec::new();
     // Exactly one level of subdirectories, each holding *.jsonl files.
-    for dir in fs::read_dir(&root).into_iter().flatten().flatten() {
+    for dir in fs::read_dir(root).into_iter().flatten().flatten() {
         for file in fs::read_dir(dir.path()).into_iter().flatten().flatten() {
             let path = file.path();
             if path.extension().and_then(|e| e.to_str()) != Some("jsonl") {
                 continue;
             }
-            let Some(meta) = read_meta(&path) else {
+            let Some(meta) = cached_meta(&path, &mut old, &mut fresh) else {
                 continue;
             };
             if filter.is_some_and(|want| !same_cwd(&meta.cwd, want)) {
@@ -53,10 +63,50 @@ pub fn sessions_list(cwd: Option<String>) -> Vec<SessionMeta> {
             out.push(meta);
         }
     }
+    // Whatever is left of `root` was deleted; entries of other roots stay.
+    old.retain(|p, _| !p.starts_with(root));
+    fresh.extend(old);
+    *cache = Some(fresh);
 
     out.sort_by_key(|m| std::cmp::Reverse(m.updated_at));
     out.truncate(MAX_RESULTS);
     out
+}
+
+struct CachedMeta {
+    len: u64,
+    modified: SystemTime,
+    meta: Option<SessionMeta>,
+}
+
+/// `read_meta` results by path. Session files only grow, so while a file's size
+/// and mtime stay the same its head does too. Every listing drops the entries
+/// of files that are gone.
+static META_CACHE: Mutex<Option<HashMap<PathBuf, CachedMeta>>> = Mutex::new(None);
+
+/// `read_meta`, reusing the previous listing's result for an unchanged file.
+fn cached_meta(
+    path: &Path,
+    old: &mut HashMap<PathBuf, CachedMeta>,
+    fresh: &mut HashMap<PathBuf, CachedMeta>,
+) -> Option<SessionMeta> {
+    let Some((len, modified)) = fs::metadata(path)
+        .ok()
+        .and_then(|m| Some((m.len(), m.modified().ok()?)))
+    else {
+        return read_meta(path);
+    };
+    let entry = match old.remove(path) {
+        Some(c) if c.len == len && c.modified == modified => c,
+        _ => CachedMeta {
+            len,
+            modified,
+            meta: read_meta(path),
+        },
+    };
+    let meta = entry.meta.clone();
+    fresh.insert(path.to_path_buf(), entry);
+    meta
 }
 
 pub(crate) fn sessions_root() -> Option<PathBuf> {
@@ -644,5 +694,51 @@ mod prune_tests {
         assert_eq!(prune_empty_in(&t.0, CWD, None, later()), 0);
         assert!(real.exists());
         assert!(outside.0.join("enc-out").join("s.jsonl").exists());
+    }
+}
+
+#[cfg(test)]
+mod cache_tests {
+    use super::*;
+    use std::io::Write;
+
+    const CWD: &str = "/nonexistent-octopus-meta-cache/project";
+
+    fn session(task: &str) -> String {
+        format!(
+            "{{\"type\":\"session\",\"id\":\"s1\",\"cwd\":\"{CWD}\"}}\n\
+             {{\"type\":\"message\",\"message\":{{\"role\":\"user\",\"content\":\"{task}\"}}}}\n"
+        )
+    }
+
+    #[test]
+    fn listing_rereads_only_changed_files_and_forgets_deleted_ones() {
+        let root = std::env::temp_dir().join(format!("octopus-meta-cache-{}", std::process::id()));
+        let _ = fs::remove_dir_all(&root);
+        fs::create_dir_all(root.join("project")).unwrap();
+        let path = root.join("project").join("s1.jsonl");
+        fs::write(&path, session("first task")).unwrap();
+        let titles = || list_in(&root, Some(CWD)).into_iter().map(|m| m.title).collect::<Vec<_>>();
+        assert_eq!(titles(), ["first task"]);
+
+        // Same size and mtime, other bytes: the cached head stands.
+        let modified = fs::metadata(&path).unwrap().modified().unwrap();
+        fs::write(&path, session("other task")).unwrap();
+        File::options().write(true).open(&path).unwrap().set_modified(modified).unwrap();
+        assert_eq!(titles(), ["first task"]);
+
+        // A rename appends a title line: the size changes and the head is read again.
+        let mut file = File::options().append(true).open(&path).unwrap();
+        writeln!(file, "{{\"type\":\"title\",\"title\":\"Renamed\"}}").unwrap();
+        drop(file);
+        assert_eq!(titles(), ["Renamed"]);
+
+        // A deleted file leaves both the list and the cache.
+        fs::remove_file(&path).unwrap();
+        assert!(titles().is_empty());
+        let cache = META_CACHE.lock().unwrap();
+        assert!(!cache.as_ref().unwrap().contains_key(&path));
+        drop(cache);
+        let _ = fs::remove_dir_all(&root);
     }
 }
