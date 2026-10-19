@@ -3,6 +3,8 @@
 </p>
 
 <p align="center">
+  <a href="https://github.com/SkvorikovCode/Octopus-AI/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/SkvorikovCode/Octopus-AI?style=flat-square&labelColor=12100e&color=ff3d2e"></a>
+  <a href="https://github.com/SkvorikovCode/Octopus-AI/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/SkvorikovCode/Octopus-AI?style=flat-square&labelColor=12100e&color=eee9e2"></a>
   <a href="LICENSE"><img alt="License: Apache-2.0" src="https://img.shields.io/badge/license-Apache--2.0-ff3d2e?style=flat-square&labelColor=12100e"></a>
   <a href="https://github.com/SkvorikovCode/Octopus-AI/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/SkvorikovCode/Octopus-AI/ci.yml?branch=main&style=flat-square&labelColor=12100e"></a>
   <img alt="Tauri 2" src="https://img.shields.io/badge/Tauri-2-24c8db?style=flat-square&labelColor=12100e">
@@ -11,7 +13,7 @@
 </p>
 
 <p align="center">
-  <b>English</b> · <a href="README.ru.md">Русский</a> · <a href="https://skvorikovcode.github.io/Octopus-AI/">Website</a>
+  <a href="https://github.com/SkvorikovCode/Octopus-AI/releases/latest"><b>Download for macOS</b></a> · <b>English</b> · <a href="README.ru.md">Русский</a> · <a href="https://skvorikovcode.github.io/Octopus-AI/">Website</a>
 </p>
 
 # Octopus AI
@@ -62,6 +64,17 @@ folder and talks to over stdin/stdout.
 | `src-tauri/src/worktrees.rs`, `gitops.rs` | isolated worktrees and git operations |
 | `src/lib/omp.ts`, `src/lib/session.ts` | protocol client and chat/tile state |
 | `src/components/` | the interface |
+
+## Download
+
+Get the `.dmg` from the [latest release](https://github.com/SkvorikovCode/Octopus-AI/releases/latest): Apple Silicon,
+macOS 11+. The agent engine is bundled, and new versions arrive as in-app
+updates.
+
+The build is not signed by Apple yet. If macOS refuses to open it, go to
+**System Settings → Privacy & Security** and press **Open Anyway** (needed
+once). On first launch, sign in with a subscription you already have or add a
+provider key.
 
 ## Run it from source
 
