@@ -454,12 +454,16 @@ fn set_mode(_path: &Path, _mode: u32) -> Result<(), String> {
 // ---------- Tauri commands ----------
 
 #[tauri::command]
-pub fn mcp_list(cwd: Option<String>) -> Result<Vec<McpServer>, String> {
-    let mut out = list_servers(&user_path_in(&home_dir()?), "user")?;
-    if let Some(dir) = cwd.as_deref().map(str::trim).filter(|c| !c.is_empty()) {
-        out.extend(list_servers(&project_path_in(Path::new(dir)), "project")?);
-    }
-    Ok(out)
+pub async fn mcp_list(cwd: Option<String>) -> Result<Vec<McpServer>, String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        let mut out = list_servers(&user_path_in(&home_dir()?), "user")?;
+        if let Some(dir) = cwd.as_deref().map(str::trim).filter(|c| !c.is_empty()) {
+            out.extend(list_servers(&project_path_in(Path::new(dir)), "project")?);
+        }
+        Ok(out)
+    })
+    .await
+    .map_err(|e| e.to_string())?
 }
 
 #[tauri::command]

@@ -240,9 +240,13 @@ fn save_in(
 // ---------- Tauri commands ----------
 
 #[tauri::command]
-pub fn instructions_get(cwd: Option<String>) -> Result<Instructions, String> {
-    let cwd = cwd_of(&cwd);
-    get_in(&home_dir()?, cwd.as_deref())
+pub async fn instructions_get(cwd: Option<String>) -> Result<Instructions, String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        let cwd = cwd_of(&cwd);
+        get_in(&home_dir()?, cwd.as_deref())
+    })
+    .await
+    .map_err(|e| e.to_string())?
 }
 
 #[tauri::command]
@@ -257,8 +261,10 @@ pub fn instructions_save(
 }
 
 #[tauri::command]
-pub fn instructions_read_claude() -> Result<String, String> {
-    read_claude_in(&home_dir()?)
+pub async fn instructions_read_claude() -> Result<String, String> {
+    tauri::async_runtime::spawn_blocking(|| read_claude_in(&home_dir()?))
+        .await
+        .map_err(|e| e.to_string())?
 }
 
 #[cfg(test)]

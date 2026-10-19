@@ -143,9 +143,13 @@ pub(crate) fn locate_omp() -> Option<PathBuf> {
         .find(|p| p.is_file())
 }
 
+/// Async: the first call runs the user's login shell to learn PATH.
 #[tauri::command]
-pub fn omp_locate() -> Option<String> {
-    locate_omp().map(|p| p.display().to_string())
+pub async fn omp_locate() -> Option<String> {
+    tauri::async_runtime::spawn_blocking(|| locate_omp().map(|p| p.display().to_string()))
+        .await
+        .ok()
+        .flatten()
 }
 
 /// Extra instructions for the desktop UI: the app shows each tool call's

@@ -7,10 +7,11 @@
 //! days, optionally limited to sessions started in one project directory.
 
 use std::cmp::Ordering;
-use std::collections::{BTreeMap, HashMap};
+use std::collections::{BTreeMap, HashMap, HashSet};
 use std::fs::{self, File};
 use std::io::{BufRead, BufReader};
 use std::path::{Path, PathBuf};
+use std::sync::Mutex;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use serde::Serialize;
@@ -111,7 +112,7 @@ impl ModelAcc {
 }
 
 /// Per-file result of scanning one session.
-#[derive(Default)]
+#[derive(Clone, Default)]
 struct FileAgg {
     cwd: String,
     session_title: String,
@@ -145,6 +146,23 @@ impl Window {
     fn contains(&self, day: i64) -> bool {
         day >= self.first_day && day <= self.last_day
     }
+
+    /// Epoch milliseconds of local midnight that opens the period.
+    fn start_ms(&self) -> i64 {
+        self.first_day * DAY_MS - self.offset_secs * 1000
+    }
+}
+
+/// Session files are append-only, so a file last written before the period
+/// holds no request inside it. A day of slack covers clock changes; a file
+/// whose time cannot be read is scanned.
+fn written_since(path: &Path, since_ms: i64) -> bool {
+    let Ok(modified) = fs::metadata(path).and_then(|m| m.modified()) else {
+        return true;
+    };
+    modified
+        .duration_since(UNIX_EPOCH)
+        .map_or(true, |d| d.as_millis() as i64 >= since_ms)
 }
 
 /// Usage statistics for the last `days` days (clamped to 1..=365), optionally
@@ -175,9 +193,15 @@ fn collect(root: &Path, days: u32, cwd: Option<&str>, now_ms: i64, offset_secs: 
     let mut model_totals: HashMap<String, ModelAcc> = HashMap::new();
     let mut sessions: Vec<SessionStat> = Vec::new();
     let mut total = Acc::default();
+    let since_ms = window.start_ms() - DAY_MS;
+    let mut scanned: HashSet<PathBuf> = HashSet::new();
 
     for path in session_files(root) {
-        let Some(agg) = scan_file(&path, &window) else {
+        if !written_since(&path, since_ms) {
+            continue;
+        }
+        scanned.insert(path.clone());
+        let Some(agg) = cached_scan(&path, &window) else {
             continue;
         };
         if agg.total.requests == 0 {
@@ -217,6 +241,8 @@ fn collect(root: &Path, days: u32, cwd: Option<&str>, now_ms: i64, offset_secs: 
             cost_by_provider: cost_by_provider(&agg.models),
         });
     }
+
+    forget_unscanned(root, &window, &scanned);
 
     let day_stats = (0..days as i64)
         .map(|i| {
@@ -269,6 +295,57 @@ fn collect(root: &Path, days: u32, cwd: Option<&str>, now_ms: i64, offset_secs: 
         total_requests: total.requests,
         session_count,
     }
+}
+
+/// Per-file results by period, so a repeated scan (the budget after every turn,
+/// the Stats screen) reopens only files written since. Keyed by the period's
+/// days and offset, then by path; valid while size and mtime stay the same.
+type WindowKey = (i64, i64, i64);
+
+struct CachedAgg {
+    len: u64,
+    modified: SystemTime,
+    agg: FileAgg,
+}
+
+static FILE_CACHE: Mutex<Option<HashMap<WindowKey, HashMap<PathBuf, CachedAgg>>>> = Mutex::new(None);
+
+/// Drops this period's entries under `root` that the last walk did not reach
+/// (deleted files), so the cache never outgrows the sessions directory.
+fn forget_unscanned(root: &Path, window: &Window, scanned: &HashSet<PathBuf>) {
+    let key = (window.first_day, window.last_day, window.offset_secs);
+    let mut guard = FILE_CACHE.lock().unwrap_or_else(|e| e.into_inner());
+    if let Some(files) = guard.as_mut().and_then(|w| w.get_mut(&key)) {
+        files.retain(|p, _| !p.starts_with(root) || scanned.contains(p));
+    }
+}
+
+/// `scan_file`, reusing the previous result while the file is unchanged.
+fn cached_scan(path: &Path, window: &Window) -> Option<FileAgg> {
+    let Some((len, modified)) = fs::metadata(path)
+        .ok()
+        .and_then(|m| Some((m.len(), m.modified().ok()?)))
+    else {
+        return scan_file(path, window);
+    };
+    let key = (window.first_day, window.last_day, window.offset_secs);
+    let mut guard = FILE_CACHE.lock().unwrap_or_else(|e| e.into_inner());
+    let by_window = guard.get_or_insert_with(HashMap::new);
+    // A period that ended before this one never comes back.
+    by_window.retain(|k, _| k.1 >= window.last_day);
+    let files = by_window.entry(key).or_default();
+    if let Some(c) = files.get(path).filter(|c| c.len == len && c.modified == modified) {
+        return Some(c.agg.clone());
+    }
+    drop(guard);
+    let agg = scan_file(path, window)?;
+    let mut guard = FILE_CACHE.lock().unwrap_or_else(|e| e.into_inner());
+    guard
+        .get_or_insert_with(HashMap::new)
+        .entry(key)
+        .or_default()
+        .insert(path.to_path_buf(), CachedAgg { len, modified, agg: agg.clone() });
+    Some(agg)
 }
 
 /// Reads one session file and counts the assistant requests inside the window.
@@ -802,6 +879,56 @@ this line is not json
         assert_eq!(stats.total_tokens, 118);
         assert_eq!(stats.total_requests, 3);
         assert_eq!(stats.session_count, 2);
+        let _ = fs::remove_dir_all(&root);
+    }
+
+    #[test]
+    fn files_last_written_before_the_period_are_not_read() {
+        let root = fixture("mtime");
+        let now = ms(NOW);
+        let written_at = |rel: &str, at: i64| {
+            let file = File::options().write(true).open(root.join(rel)).unwrap();
+            file.set_modified(UNIX_EPOCH + std::time::Duration::from_millis(at as u64))
+                .unwrap();
+        };
+        // The period (one day) starts at 2026-10-10 00:00. Alpha holds requests from
+        // that day, but its mtime says it was last written three days earlier, so the
+        // scan never opens it. Beta was written within the day of slack and is read.
+        written_at("proj-a/s1.jsonl", now - 3 * DAY_MS);
+        written_at("proj-b/s2.jsonl", now - DAY_MS - 3_600_000);
+
+        let stats = collect(&root, 1, None, now, 0);
+        let titles: Vec<&str> = stats.sessions.iter().map(|s| s.title.as_str()).collect();
+        assert_eq!(titles, ["Beta"]);
+        let _ = fs::remove_dir_all(&root);
+    }
+
+    #[test]
+    fn unchanged_files_are_not_read_again() {
+        let root = fixture("cache");
+        let now = ms(NOW);
+        let path = root.join("proj-b").join("s2.jsonl");
+        let first = collect(&root, 3, None, now, 0);
+
+        // Same size and mtime, different bytes: the previous result stands.
+        let modified = fs::metadata(&path).unwrap().modified().unwrap();
+        let swapped = SESSION_B.replace("\"input\":10", "\"input\":90");
+        assert_eq!(swapped.len(), SESSION_B.len());
+        fs::write(&path, &swapped).unwrap();
+        File::options().write(true).open(&path).unwrap().set_modified(modified).unwrap();
+        assert_eq!(collect(&root, 3, None, now, 0).total_tokens, first.total_tokens);
+
+        // A write that changes the size is read again.
+        fs::write(&path, format!("{swapped}\n")).unwrap();
+        assert_eq!(collect(&root, 3, None, now, 0).total_tokens, first.total_tokens + 80);
+
+        // A deleted file leaves both the result and the cache.
+        fs::remove_file(&path).unwrap();
+        let after = collect(&root, 3, None, now, 0);
+        assert!(after.sessions.iter().all(|s| s.title != "Beta"));
+        let cached = FILE_CACHE.lock().unwrap();
+        assert!(cached.as_ref().unwrap().values().all(|files| !files.contains_key(&path)));
+        drop(cached);
         let _ = fs::remove_dir_all(&root);
     }
 
