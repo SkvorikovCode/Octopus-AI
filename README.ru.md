@@ -3,7 +3,12 @@
 </p>
 
 <p align="center">
-  <a href="README.md">English</a> · <b>Русский</b> · <a href="https://skvorikovcode.github.io/Octopus-AI/ru/">Сайт</a>
+  <a href="https://github.com/SkvorikovCode/Octopus-AI/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/SkvorikovCode/Octopus-AI?style=flat-square&labelColor=12100e&color=ff3d2e"></a>
+  <a href="https://github.com/SkvorikovCode/Octopus-AI/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/SkvorikovCode/Octopus-AI?style=flat-square&labelColor=12100e&color=eee9e2"></a>
+</p>
+
+<p align="center">
+  <a href="https://github.com/SkvorikovCode/Octopus-AI/releases/latest"><b>Скачать для macOS</b></a> · <a href="README.md">English</a> · <b>Русский</b> · <a href="https://skvorikovcode.github.io/Octopus-AI/ru/">Сайт</a>
 </p>
 
 # Octopus AI
@@ -50,6 +55,17 @@ stdin/stdout.
 | `src-tauri/src/worktrees.rs`, `gitops.rs` | изолированные worktree и операции git |
 | `src/lib/omp.ts`, `src/lib/session.ts` | клиент протокола и состояние чата/плиток |
 | `src/components/` | интерфейс |
+
+## Скачать
+
+Образ `.dmg` лежит в [последнем релизе](https://github.com/SkvorikovCode/Octopus-AI/releases/latest): Apple Silicon,
+macOS 11+. Движок агента уже внутри, новые версии приходят обновлением прямо в
+приложении.
+
+Сборка пока не подписана Apple. Если macOS не даёт её открыть, зайдите в
+**Системные настройки → Конфиденциальность и безопасность** и нажмите
+**Всё равно открыть** (нужно один раз). При первом запуске войдите через
+подписку, которая у вас уже есть, или добавьте ключ провайдера.
 
 ## Запуск из исходников
 
