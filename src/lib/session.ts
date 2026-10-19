@@ -95,6 +95,10 @@ const nextKey = (p: string) => `${p}${++keySeq}`;
 // Frames that would flood the debug log without telling anything new.
 const QUIET = new Set(["message_update", "tool_execution_update"]);
 
+// The log is only shown by the dev-build protocol drawer; release builds skip
+// serializing every frame into it. Read at call time so tests can switch it.
+const logging = () => import.meta.env.DEV;
+
 /** Tool steps since the last user message — the same count the chat shows. */
 function stepsInTurn(items: Item[]): number {
   let n = 0;
@@ -120,7 +124,7 @@ function reduceInner(s: SessionState, a: Action): SessionState {
     case "status":
       return { ...s, status: a.status };
     case "log":
-      return { ...s, log: pushLog(s.log, a.line) };
+      return logging() ? { ...s, log: pushLog(s.log, a.line) } : s;
     case "state": {
       const d = a.data ?? {};
       const cu = d.contextUsage;
@@ -180,7 +184,7 @@ function reduceInner(s: SessionState, a: Action): SessionState {
     }
     case "frame": {
       const next = onFrame(s, a.frame);
-      if (QUIET.has(a.frame.type)) return next;
+      if (QUIET.has(a.frame.type) || !logging()) return next;
       return { ...next, log: pushLog(next.log, { dir: "in", text: JSON.stringify(a.frame) }) };
     }
   }
