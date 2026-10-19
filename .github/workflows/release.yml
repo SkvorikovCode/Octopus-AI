@@ -56,7 +56,7 @@ jobs:
       - name: Fetch the agent engine (pinned in engine.lock, checksum verified)
         run: scripts/fetch-engine.sh
 
-      - uses: tauri-apps/tauri-action@v0
+      - uses: tauri-apps/tauri-action@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # Signs the update archive; the app checks it against the public key in tauri.conf.json.
@@ -69,7 +69,7 @@ jobs:
           # Not a pre-release: the app looks for updates at releases/latest, which skips pre-releases.
           prerelease: false
           # latest.json: the update feed the app reads.
-          includeUpdaterJson: true
+          uploadUpdaterJson: true
           args: --target aarch64-apple-darwin --config src-tauri/tauri.release.conf.json
           releaseBody: |
             **Preview build for Apple Silicon Macs (macOS 11+).** Not signed or notarized yet.
