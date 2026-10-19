@@ -71,6 +71,8 @@ img, svg { display: block; max-width: 100%; }
 .btn.small { height: 38px; padding: 0 16px; font-size: 14px; }
 .btn[aria-disabled="true"] { background: transparent; border: 1px dashed var(--line-2); color: var(--ink-3); cursor: default; pointer-events: none; }
 .btn svg { width: 18px; height: 18px; fill: currentColor; }
+.stars { font: 500 12.5px/1 var(--mono); letter-spacing: 0.02em; color: var(--ink-2); padding: 5px 8px; margin-right: -8px; border-radius: 999px; background: var(--panel-2); border: 1px solid var(--line-2); }
+.stars:empty { display: none; }
 
 /* ---- hero ---- */
 .hero { padding: 84px 0 40px; }
@@ -80,6 +82,8 @@ h1 { font: 700 clamp(38px, 5.4vw, 64px)/1.04 var(--sans); letter-spacing: -0.025
 h1 em { font-style: normal; color: var(--accent); }
 .lede { font-size: 19px; color: var(--ink-2); max-width: 36em; margin: 0 0 32px; text-wrap: pretty; }
 .cta { display: flex; flex-wrap: wrap; gap: 12px; }
+.meta { margin: 16px 0 0; font: 500 13px/1.5 var(--mono); letter-spacing: 0.04em; color: var(--ink-3); }
+.meta [data-version]:not(:empty)::after { content: " · "; }
 .hero-art { display: grid; place-items: center; }
 .hero-art svg { width: min(360px, 78%); height: auto; filter: drop-shadow(0 0 60px rgba(255, 61, 46, 0.22)); }
 .orbit { transform-origin: 100px 80px; animation: spin 36s linear infinite; }
@@ -118,6 +122,12 @@ h2 { font: 700 clamp(28px, 3.6vw, 42px)/1.12 var(--sans); letter-spacing: -0.02e
 .code .p { color: var(--accent); user-select: none; }
 .copy { position: absolute; top: 14px; right: 14px; font: 500 12px/1 var(--mono); letter-spacing: 0.06em; background: var(--panel-2); color: var(--ink-2); border: 1px solid var(--line-2); border-radius: 999px; padding: 8px 12px; cursor: pointer; }
 .copy:hover { color: var(--ink); border-color: var(--ink-3); }
+.install { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin: 0; padding: 0; list-style: none; }
+.install b { color: var(--ink-2); font-weight: 600; }
+.tile code { font: 500 0.92em var(--mono); color: var(--ink-2); }
+.install-cta { margin-top: 24px; }
+.src-h { font: 650 20px/1.25 var(--sans); margin: 64px 0 8px; }
+.sub.small { font-size: 15.5px; margin-bottom: 20px; }
 .note { color: var(--ink-3); font-size: 15px; margin-top: 18px; }
 .note a, .sub a, .foot a.u { color: var(--ink); border-bottom: 1px solid var(--line-2); }
 .note a:hover, .sub a:hover { border-color: var(--accent); }
@@ -144,6 +154,7 @@ footer a:hover { color: var(--ink); }
   .hero-art { order: -1; justify-items: start; }
   .hero-art svg { width: 170px; }
   .tiles, .steps { grid-template-columns: 1fr 1fr; }
+  .install { grid-template-columns: 1fr; }
   .support { grid-template-columns: 1fr; }
   .nav-links { display: none; }
   .lang { margin-left: auto; }
