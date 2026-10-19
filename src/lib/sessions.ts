@@ -19,6 +19,11 @@ export function listSessions(cwd?: string): Promise<SessionMeta[]> {
   return invoke<SessionMeta[]>("sessions_list", { cwd: cwd ?? null });
 }
 
+/** Sessions of each folder (one list per entry, same order) from one walk of the sessions directory. */
+export function listSessionsMany(cwds: string[]): Promise<SessionMeta[][]> {
+  return invoke<SessionMeta[][]>("sessions_list_many", { cwds });
+}
+
 export function relativeTime(ms: number): string {
   const diff = Date.now() - ms;
   const min = Math.floor(diff / 60000);
