@@ -145,6 +145,23 @@ impl Window {
     fn contains(&self, day: i64) -> bool {
         day >= self.first_day && day <= self.last_day
     }
+
+    /// Epoch milliseconds of local midnight that opens the period.
+    fn start_ms(&self) -> i64 {
+        self.first_day * DAY_MS - self.offset_secs * 1000
+    }
+}
+
+/// Session files are append-only, so a file last written before the period
+/// holds no request inside it. A day of slack covers clock changes; a file
+/// whose time cannot be read is scanned.
+fn written_since(path: &Path, since_ms: i64) -> bool {
+    let Ok(modified) = fs::metadata(path).and_then(|m| m.modified()) else {
+        return true;
+    };
+    modified
+        .duration_since(UNIX_EPOCH)
+        .map_or(true, |d| d.as_millis() as i64 >= since_ms)
 }
 
 /// Usage statistics for the last `days` days (clamped to 1..=365), optionally
@@ -175,8 +192,12 @@ fn collect(root: &Path, days: u32, cwd: Option<&str>, now_ms: i64, offset_secs: 
     let mut model_totals: HashMap<String, ModelAcc> = HashMap::new();
     let mut sessions: Vec<SessionStat> = Vec::new();
     let mut total = Acc::default();
+    let since_ms = window.start_ms() - DAY_MS;
 
     for path in session_files(root) {
+        if !written_since(&path, since_ms) {
+            continue;
+        }
         let Some(agg) = scan_file(&path, &window) else {
             continue;
         };
@@ -802,6 +823,27 @@ this line is not json
         assert_eq!(stats.total_tokens, 118);
         assert_eq!(stats.total_requests, 3);
         assert_eq!(stats.session_count, 2);
+        let _ = fs::remove_dir_all(&root);
+    }
+
+    #[test]
+    fn files_last_written_before_the_period_are_not_read() {
+        let root = fixture("mtime");
+        let now = ms(NOW);
+        let written_at = |rel: &str, at: i64| {
+            let file = File::options().write(true).open(root.join(rel)).unwrap();
+            file.set_modified(UNIX_EPOCH + std::time::Duration::from_millis(at as u64))
+                .unwrap();
+        };
+        // The period (one day) starts at 2026-10-10 00:00. Alpha holds requests from
+        // that day, but its mtime says it was last written three days earlier, so the
+        // scan never opens it. Beta was written within the day of slack and is read.
+        written_at("proj-a/s1.jsonl", now - 3 * DAY_MS);
+        written_at("proj-b/s2.jsonl", now - DAY_MS - 3_600_000);
+
+        let stats = collect(&root, 1, None, now, 0);
+        let titles: Vec<&str> = stats.sessions.iter().map(|s| s.title.as_str()).collect();
+        assert_eq!(titles, ["Beta"]);
         let _ = fs::remove_dir_all(&root);
     }
 
