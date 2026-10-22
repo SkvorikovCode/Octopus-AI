@@ -28,6 +28,7 @@ const en: Record<string, string> = {
   "Не отправлено: {error}": "Not sent: {error}",
   "Не удалось изменить сообщение: {error}": "Couldn't edit the message: {error}",
   "Не удалось открыть сессию: {error}": "Couldn't open the session: {error}",
+  "Сессия {id} не найдена среди работающих агентов и сессий этого проекта.": "Session {id} is not among the running agents or this project's sessions.",
   "Не удалось удалить сессию: {error}": "Couldn't delete the session: {error}",
   "Нет ни одной доступной модели. Подключите провайдера или добавьте ключ API.":
     "No models are available. Connect a provider or add an API key.",
