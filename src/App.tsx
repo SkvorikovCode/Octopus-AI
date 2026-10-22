@@ -1,4 +1,5 @@
 import { invoke, isTauri } from "@tauri-apps/api/core";
+import { listen } from "@tauri-apps/api/event";
 import { ask, open, save } from "@tauri-apps/plugin-dialog";
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState, useSyncExternalStore } from "react";
 import { Composer, type ComposerImage, type SlashCommand } from "./components/Composer";
@@ -37,6 +38,7 @@ import { describeApproval, initialSession, type Ask } from "./lib/session";
 import { Runtime, rememberCheckpoint, sessionCheckpoints, type RuntimeSnapshot } from "./lib/runtime";
 import { checkpointChanges, createCheckpoint, restoreCheckpoint, type CheckpointChange } from "./lib/checkpoints";
 import { notifyIfAway } from "./lib/notify";
+import { askedSessionStep } from "./lib/launch";
 import { fileStem, sessionToMarkdown } from "./lib/exportMd";
 import { useSettings } from "./lib/settings";
 import { expandTemplate, useTemplates } from "./lib/templates";
@@ -92,6 +94,8 @@ export default function App() {
   const [view, setView] = useState<View>("session");
   const [project, setProject] = useState<string | undefined>(savedProject);
   const [sessions, setSessions] = useState<SessionMeta[]>([]);
+  /** The project the session list on hand belongs to (it lags a project switch). */
+  const [sessionsFor, setSessionsFor] = useState<string | undefined>();
   const [recentProjects, setRecentProjects] = useState<RecentProject[]>(getRecentProjects);
   const [ompPath, setOmpPath] = useState<string | null | undefined>(undefined);
   const [home, setHome] = useState<string | undefined>(DEMO ? "/Users/demo" : undefined);
@@ -202,6 +206,7 @@ export default function App() {
       });
       setWorktreeOf(map);
       setSessions([...main, ...extra].sort((a, b) => b.updatedAt - a.updatedAt));
+      setSessionsFor(cwd);
     });
   }, []);
 
@@ -686,6 +691,32 @@ export default function App() {
       notice(t("Не удалось открыть сессию: {error}", { error: errText(e) }), r);
     }
   };
+
+  // ---------- a session asked for from outside: octopus-ai --session <id> ----------
+  /** Asked by the launch that started the app or by a later one, until it can be opened. */
+  const [askedSession, setAskedSession] = useState<string | null>(null);
+  useEffect(() => {
+    if (DEMO) return;
+    invoke<string | null>("app_take_launch_session").then((id) => id && setAskedSession(id)).catch(() => {});
+    const off = listen<string>("open-session", (e) => setAskedSession(e.payload));
+    return () => void off.then((f) => f());
+  }, []);
+  // Once the agent is ready: a running agent's session (any project), else one from this project's list.
+  useEffect(() => {
+    if (!askedSession || !ready) return;
+    const running = [...runtimes.current.values()].filter((x) => !x.disposed).map((x) => ({ sessionId: x.state.sessionId, runtime: x }));
+    const step = askedSessionStep(askedSession, running, sessions, !project ? "none" : sessionsFor === project ? "loaded" : "loading");
+    if (step.kind === "wait") return;
+    setAskedSession(null);
+    if (step.kind === "runtime") {
+      setView("session");
+      if (step.runtime !== rtRef.current) activate(step.runtime);
+    } else if (step.kind === "open") {
+      void openSession(step.meta);
+    } else {
+      notice(t("Сессия {id} не найдена среди работающих агентов и сессий этого проекта.", { id: askedSession }));
+    }
+  }, [askedSession, ready, sessions, sessionsFor, project]);
 
   const deleteSession = async (meta: SessionMeta) => {
     try {
