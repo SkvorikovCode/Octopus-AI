@@ -12,6 +12,7 @@ mod files;
 mod gitops;
 mod instructions;
 mod stats;
+mod status;
 mod workspace;
 mod worktrees;
 
@@ -37,6 +38,7 @@ pub fn run() {
         .manage(omp::OmpState::default())
         .manage(pty::PtyState::default())
         .manage(shell::ShellState::default())
+        .manage(status::StatusState::default())
         .invoke_handler(tauri::generate_handler![
             omp::omp_locate,
             omp::omp_start,
@@ -90,6 +92,7 @@ pub fn run() {
             rules::rule_delete,
             shell::app_set_busy,
             shell::app_quit,
+            status::app_set_status,
         ])
         .on_window_event(|window, event| {
             shell::on_window_event(window, event);
@@ -100,5 +103,8 @@ pub fn run() {
         })
         .build(tauri::generate_context!())
         .expect("error while building tauri application")
-        .run(|app, event| shell::on_run_event(app, &event));
+        .run(|app, event| {
+            shell::on_run_event(app, &event);
+            status::on_run_event(app, &event);
+        });
 }
