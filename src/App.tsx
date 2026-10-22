@@ -40,6 +40,7 @@ import { Runtime, rememberCheckpoint, sessionCheckpoints, type RuntimeSnapshot }
 import { checkpointChanges, createCheckpoint, restoreCheckpoint, type CheckpointChange } from "./lib/checkpoints";
 import { notifyIfAway } from "./lib/notify";
 import { askedSessionStep } from "./lib/launch";
+import { statusSnapshot } from "./lib/status";
 import { fileStem, sessionToMarkdown } from "./lib/exportMd";
 import { useSettings } from "./lib/settings";
 import { expandTemplate, useTemplates } from "./lib/templates";
@@ -814,6 +815,24 @@ export default function App() {
     }
     return map;
   }, [runtimesVersion, s.status, s.sessionId]);
+
+  // The desktop status file: what each agent does, for widgets outside the window.
+  useEffect(() => {
+    if (DEMO) return;
+    const views = [...runtimes.current.values()]
+      .filter((r) => !r.disposed)
+      .map((r) => ({
+        sessionId: r.state.sessionId,
+        title: r.state.title,
+        goal: r.state.goal,
+        cwd: r.cwd,
+        worktree: r.worktree,
+        status: r.state.status,
+        unread: r.snap.unread,
+        turnStartedAt: r.state.turnStartedAt,
+      }));
+    invoke("app_set_status", { snapshot: statusSnapshot(views) }).catch(() => {});
+  }, [runtimesVersion, s.status, s.sessionId, s.title, s.turnStartedAt]);
 
   // Native shell: quitting asks while any agent (in any session) works or waits for an answer.
   const anyBusy = [...runtimes.current.values()].some((r) => !r.disposed && r.busy);
