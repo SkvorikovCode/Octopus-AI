@@ -57,6 +57,7 @@ const en: Record<string, string> = {
   "Завершить": "Quit",
   "Остаться": "Stay",
   "Установлена последняя версия: {version}.": "You have the latest version: {version}.",
+  "Установлена версия {version}. Её обновляет менеджер пакетов системы.": "This is version {version}. Your system package manager keeps it up to date.",
   "Обновлений нет": "No updates",
   "Не удалось проверить обновления: {error}": "Couldn't check for updates: {error}",
   "Обновления": "Updates",
