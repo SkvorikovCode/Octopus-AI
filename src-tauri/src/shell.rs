@@ -23,6 +23,18 @@ pub fn show_main<R: Runtime>(app: &AppHandle<R>) {
     }
 }
 
+/// Whether the in-app updater may replace this copy. On Linux it can swap only an
+/// AppImage (`$APPIMAGE` is set inside one); a .deb or AUR install belongs to the
+/// package manager.
+fn self_updates(linux: bool, appimage: Option<std::ffi::OsString>) -> bool {
+    !linux || appimage.is_some_and(|p| !p.is_empty())
+}
+
+#[tauri::command]
+pub fn app_self_updates() -> bool {
+    self_updates(cfg!(target_os = "linux"), std::env::var_os("APPIMAGE"))
+}
+
 #[tauri::command]
 pub fn app_set_busy(state: State<ShellState>, busy: bool) {
     state.busy.store(busy, Ordering::Relaxed);
@@ -74,5 +86,18 @@ pub fn on_run_event<R: Runtime>(app: &AppHandle<R>, event: &RunEvent) {
             app.state::<crate::pty::PtyState>().shutdown();
         }
         _ => {}
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn only_a_linux_system_package_leaves_updates_to_the_package_manager() {
+        assert!(self_updates(false, None));
+        assert!(self_updates(true, Some("/home/u/Octopus.AppImage".into())));
+        assert!(!self_updates(true, None));
+        assert!(!self_updates(true, Some("".into())));
     }
 }
