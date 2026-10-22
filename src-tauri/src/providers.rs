@@ -655,6 +655,20 @@ pub fn env_pairs() -> Vec<(String, String)> {
 mod tests {
     use super::*;
 
+    /// Talks to the real OS store (Keychain, Secret Service), so it is not run by default:
+    /// `cargo test keychain_round_trip -- --ignored`.
+    #[test]
+    #[ignore]
+    fn keychain_round_trip_uses_the_os_store() {
+        let id = format!("octopus-test-{}", std::process::id());
+        keychain_set(&id, "sk-test-value").unwrap();
+        // keychain_get opens a fresh entry, as the next app start does; the mock store
+        // keyring falls back to without a platform store finds nothing here.
+        assert_eq!(keychain_get(&id).as_deref(), Some("sk-test-value"));
+        keychain_delete(&id).unwrap();
+        assert_eq!(keychain_get(&id), None);
+    }
+
     struct TempDir(PathBuf);
 
     impl TempDir {
