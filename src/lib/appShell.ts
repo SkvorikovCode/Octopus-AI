@@ -1,4 +1,4 @@
-// Native app shell (macOS): the menu bar, quitting while agents work, and updates.
+// Native app shell: the menu bar (macOS), quitting while agents work, and updates.
 // Everything here is a no-op outside Tauri (the browser demo).
 
 import { invoke, isTauri } from "@tauri-apps/api/core";
@@ -9,6 +9,7 @@ import { ask, message } from "@tauri-apps/plugin-dialog";
 import { check, type Update } from "@tauri-apps/plugin-updater";
 import { relaunch } from "@tauri-apps/plugin-process";
 import { t } from "./i18n";
+import { IS_MAC } from "./platform";
 
 export type MenuActions = {
   newSession: () => void;
@@ -16,9 +17,13 @@ export type MenuActions = {
   checkUpdates: () => void;
 };
 
-/** Builds the menu bar in the current interface language. Call again when the language changes. */
+/**
+ * Builds the menu bar in the current interface language. Call again when the language changes.
+ * macOS only: elsewhere Tauri draws it as a strip inside the window, so its shortcuts are
+ * handled by the app's own keydown listener instead.
+ */
 export async function setAppMenu(actions: MenuActions) {
-  if (!isTauri()) return;
+  if (!isTauri() || !IS_MAC) return;
   const version = await getVersion();
   const sep = () => PredefinedMenuItem.new({ item: "Separator" });
   const app = await Submenu.new({
@@ -78,7 +83,7 @@ export function reportBusy(busy: boolean) {
   if (isTauri()) invoke("app_set_busy", { busy }).catch(() => {});
 }
 
-async function requestQuit() {
+export async function requestQuit() {
   await invoke("app_quit", { force: false });
 }
 

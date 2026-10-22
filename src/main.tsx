@@ -7,7 +7,9 @@ import "@fontsource-variable/jetbrains-mono";
 import "@fontsource-variable/doto";
 import "./styles.css";
 import { applySettings } from "./lib/settings";
+import { markPlatform } from "./lib/platform";
 
+markPlatform();
 applySettings();
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(

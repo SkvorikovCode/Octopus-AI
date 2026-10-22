@@ -140,8 +140,9 @@ input, textarea { font: inherit; color: inherit; background: none; border: 0; ou
   padding: 0 12px 14px;
 }
 /* Room for the macOS traffic lights, placed inside this card by
-   `trafficLightPosition` in tauri.conf.json. */
+   `trafficLightPosition` in tauri.conf.json. Other desktops draw no buttons there. */
 .sidebar-top { height: 40px; flex-shrink: 0; }
+:root:not([data-platform="mac"]) .sidebar-top { height: 0; }
 .brand { display: flex; align-items: center; gap: 10px; padding: 0 6px; }
 .brand-word { font-family: var(--dots); font-weight: 900; font-size: 22px; letter-spacing: 0.04em; }
 

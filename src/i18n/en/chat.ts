@@ -86,7 +86,7 @@ const en: Record<string, string> = {
   "Файлы проекта": "Project files",
   "Отпустите, чтобы прикрепить": "Drop to attach",
   "Команда выполнится в папке проекта, агент увидит вывод": "The command runs in the project folder; the agent will see the output",
-  "⌘ Enter — отправить · Enter — новая строка · ! — команда в терминале": "⌘ Enter to send · Enter for a new line · ! to run a terminal command",
+  "{key} — отправить · Enter — новая строка · ! — команда в терминале": "{key} to send · Enter for a new line · ! to run a terminal command",
   "Enter — отправить · Shift+Enter — новая строка · ! — команда в терминале": "Enter to send · Shift+Enter for a new line · ! to run a terminal command",
   // CommandPalette.tsx
   "Поиск по сессиям и действиям…": "Search sessions and actions…",
