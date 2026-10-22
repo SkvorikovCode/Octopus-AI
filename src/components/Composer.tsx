@@ -12,6 +12,7 @@ import {
 import { invoke, isTauri } from "@tauri-apps/api/core";
 import { getCurrentWebview } from "@tauri-apps/api/webview";
 import { useSettings } from "../lib/settings";
+import { modKey } from "../lib/platform";
 import { t, tn } from "../lib/i18n";
 import { MAX_PINNED, setPinned, usePinned } from "../lib/context";
 import { Icon } from "./Glyphs";
@@ -818,7 +819,7 @@ export function Composer({
           {shellMode
             ? t("Команда выполнится в папке проекта, агент увидит вывод")
             : settings.sendWith === "mod-enter"
-              ? t("⌘ Enter — отправить · Enter — новая строка · ! — команда в терминале")
+              ? t("{key} — отправить · Enter — новая строка · ! — команда в терминале", { key: modKey("Enter") })
               : t("Enter — отправить · Shift+Enter — новая строка · ! — команда в терминале")}
         </span>
         {statusSlot && <div className="hint-status">{statusSlot}</div>}

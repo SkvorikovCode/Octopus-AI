@@ -47,7 +47,7 @@ const en: Record<string, string> = {
 
   // Settings: templates ("My commands")
   "Мои команды": "My commands",
-  "Шаблоны задач. Набирайте /имя в поле ввода или ищите в палитре ⌘K.": "Task templates. Type /name in the input or search the ⌘K palette.",
+  "Шаблоны задач. Набирайте /имя в поле ввода или ищите в палитре {key}.": "Task templates. Type /name in the input or search the {key} palette.",
   "Команд пока нет.": "No commands yet.",
   "Точно удалить?": "Confirm delete?",
   "Удалить": "Delete",

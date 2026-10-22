@@ -18,6 +18,7 @@ import {
 import { parseLimit, todaySpend } from "../lib/budget";
 import { formatCost } from "../lib/stats";
 import { t } from "../lib/i18n";
+import { modKey } from "../lib/platform";
 import { ModelPrices, type PriceModel } from "./ModelPrices";
 import { InstructionsSection } from "./Instructions";
 import "./settings.css";
@@ -26,9 +27,9 @@ import "./budget.css";
 const SCALES = [0.85, 1, 1.1, 1.25] as const;
 
 const HOTKEYS: { keys: string[]; text: string }[] = [
-  { keys: ["⌘K"], text: "Палитра команд" },
-  { keys: ["⌘N"], text: "Новая сессия" },
-  { keys: ["Enter", "⌘Enter"], text: "Отправить" },
+  { keys: [modKey("K")], text: "Палитра команд" },
+  { keys: [modKey("N")], text: "Новая сессия" },
+  { keys: ["Enter", modKey("Enter")], text: "Отправить" },
   { keys: ["Shift+Enter"], text: "Новая строка" },
   { keys: ["Esc"], text: "Закрыть окно" },
   { keys: ["/"], text: "Команды агента" },
@@ -244,7 +245,7 @@ export function SettingsScreen({
                 label={t("Отправка сообщения")}
                 options={[
                   { value: "enter", text: "Enter" },
-                  { value: "mod-enter", text: "⌘ Enter" },
+                  { value: "mod-enter", text: modKey("Enter") },
                 ]}
                 value={s.sendWith}
                 onChange={(v) => updateSettings({ sendWith: v })}
@@ -383,7 +384,7 @@ function TemplatesSection(): ReactElement {
   return (
     <Section
       title={t("Мои команды")}
-      desc={t("Шаблоны задач. Набирайте /имя в поле ввода или ищите в палитре ⌘K.")}
+      desc={t("Шаблоны задач. Набирайте /имя в поле ввода или ищите в палитре {key}.", { key: modKey("K") })}
     >
       {templates.length === 0 && editingId !== "new" && (
         <p className="set-desc">{t("Команд пока нет.")}</p>

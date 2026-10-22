@@ -81,7 +81,7 @@ const en: Record<string, string> = {
   "Не удалось создать копию проекта: {error}": "Couldn't create a project copy: {error}",
   "Лимит расходов исчерпан — подтвердите продолжение в плашке над полем ввода": "Spending limit reached — confirm to continue in the bar above the input",
   "Терминал": "Terminal",
-  "Терминал (⌘J)": "Terminal (⌘J)",
+  "Терминал ({key})": "Terminal ({key})",
   "консоль shell командная строка": "console shell command line terminal",
   "Подключения": "Connections",
   "mcp навыки серверы инструменты": "mcp skills servers tools connections",
