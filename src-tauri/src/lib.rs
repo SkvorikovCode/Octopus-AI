@@ -1,4 +1,5 @@
 mod keys;
+mod launch;
 mod mcp;
 mod omp;
 mod providers;
@@ -22,7 +23,7 @@ use tauri_plugin_window_state::StateFlags;
 pub fn run() {
     tauri::Builder::default()
         // Must come first: a second launch only brings the running app forward.
-        .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| shell::show_main(app)))
+        .plugin(tauri_plugin_single_instance::init(|app, args, _cwd| launch::on_second_launch(app, args)))
         .plugin(
             // Size and position survive restarts; visibility doesn't (the app quits with the window hidden).
             tauri_plugin_window_state::Builder::default()
@@ -37,8 +38,14 @@ pub fn run() {
         .manage(omp::OmpState::default())
         .manage(pty::PtyState::default())
         .manage(shell::ShellState::default())
+        .manage(launch::LaunchState::default())
+        .setup(|app| {
+            launch::on_first_launch(app.handle());
+            Ok(())
+        })
         .invoke_handler(tauri::generate_handler![
             omp::omp_locate,
+            launch::app_take_launch_session,
             omp::omp_start,
             omp::omp_send,
             omp::omp_stop,
