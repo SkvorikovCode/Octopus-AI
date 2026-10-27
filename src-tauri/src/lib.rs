@@ -89,6 +89,7 @@ pub fn run() {
             rules::rule_save,
             rules::rule_delete,
             shell::app_set_busy,
+            shell::app_self_updates,
             shell::app_quit,
         ])
         .on_window_event(|window, event| {

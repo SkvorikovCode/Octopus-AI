@@ -97,15 +97,24 @@ export function listenQuitRequests(): () => void {
   return () => void off.then((f) => f());
 }
 
+/** False for a Linux system package (.deb, AUR): the package manager updates it. */
+function selfUpdates(): Promise<boolean> {
+  return invoke<boolean>("app_self_updates").catch(() => true);
+}
+
 /** A newer release, or null. Release builds only: dev builds have no signed update feed. */
 export async function findUpdate(): Promise<Update | null> {
-  if (!isTauri() || import.meta.env.DEV) return null;
+  if (!isTauri() || import.meta.env.DEV || !(await selfUpdates())) return null;
   return check();
 }
 
 /** "You're up to date" after a manual check from the menu. */
 export async function sayUpToDate() {
   const version = await getVersion();
+  if (isTauri() && !(await selfUpdates())) {
+    await message(t("Установлена версия {version}. Её обновляет менеджер пакетов системы.", { version }), { title: t("Обновления"), kind: "info" });
+    return;
+  }
   await message(t("Установлена последняя версия: {version}.", { version }), { title: t("Обновлений нет"), kind: "info" });
 }
 
