@@ -5,6 +5,7 @@ import type { RecentProject } from "../lib/projects";
 import { displayTitle, rename, toggleArchive, togglePin, useSessionPrefs } from "../lib/sessionPrefs";
 import { DotSpinner, Icon, Logo } from "./Glyphs";
 import { ProjectSwitcher } from "./ProjectSwitcher";
+import { modKey } from "../lib/platform";
 import { t } from "../lib/i18n";
 import { ForkGlyph } from "./WorktreeBar";
 import "./sidebar.css";
@@ -304,7 +305,7 @@ export function Sidebar(p: Props) {
       <button className="btn-new" onClick={p.onNewSession} disabled={!ready}>
         <Icon name="plus" size={14} />
         <span>{t("Новая сессия")}</span>
-        <span className="mono" style={{ fontSize: 11, color: "var(--mute)" }}>⌘N</span>
+        <span className="mono" style={{ fontSize: 11, color: "var(--mute)" }}>{modKey("N")}</span>
       </button>
 
       <nav className="side-nav" aria-label={t("Разделы")}>

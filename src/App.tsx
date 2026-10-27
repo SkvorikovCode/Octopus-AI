@@ -23,7 +23,8 @@ import { Swarm } from "./components/Swarm";
 import { Thread } from "./components/Thread";
 import { TileDots, Tiles, useTilesMode } from "./components/Tiles";
 import { applyMinWindowSize } from "./lib/windowSize";
-import { findUpdate, listenQuitRequests, reportBusy, sayUpToDate, sayUpdateFailed, setAppMenu, type Update } from "./lib/appShell";
+import { findUpdate, listenQuitRequests, reportBusy, requestQuit, sayUpToDate, sayUpdateFailed, setAppMenu, type Update } from "./lib/appShell";
+import { IS_MAC, modKey } from "./lib/platform";
 import { UpdateCard } from "./components/UpdateCard";
 import { Onboarding } from "./components/Onboarding";
 import { isOnboarded, markOnboarded } from "./lib/onboarding";
@@ -840,6 +841,17 @@ export default function App() {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "n" && ready) {
         e.preventDefault();
         newSession();
+        return;
+      }
+      // Without a menu bar (not macOS) its Ctrl+, and Ctrl+Q land here.
+      if (!IS_MAC && e.ctrlKey && !e.altKey && !e.shiftKey && e.key === ",") {
+        e.preventDefault();
+        openSettings();
+        return;
+      }
+      if (!IS_MAC && e.ctrlKey && !e.altKey && !e.shiftKey && e.code === "KeyQ") {
+        e.preventDefault();
+        void requestQuit();
       }
     };
     window.addEventListener("keydown", onKey);
@@ -911,7 +923,7 @@ export default function App() {
   );
 
   const paletteItems: PaletteItem[] = [
-    { id: "new", group: t("Действия"), title: t("Новая сессия"), shortcut: "⌘N", run: newSession },
+    { id: "new", group: t("Действия"), title: t("Новая сессия"), shortcut: modKey("N"), run: newSession },
     { id: "swarm", group: t("Действия"), title: t("Рой агентов"), keywords: t("агенты параллельно"), run: () => setView("swarm") },
     { id: "changes", group: t("Действия"), title: t("Изменения в проекте"), keywords: t("git дифф diff откат"), run: () => setChangesOpen(true) },
     { id: "compact", group: t("Действия"), title: t("Сжать контекст"), keywords: t("память токены"), run: () => rtRef.current?.client.request({ type: "compact" }).then(() => refresh()).catch(() => {}) },
@@ -921,7 +933,7 @@ export default function App() {
     { id: "connections", group: t("Действия"), title: t("Подключения"), keywords: t("mcp навыки серверы инструменты"), run: () => openSettings("connections") },
     { id: "browse", group: t("Действия"), title: t("Открыть папку проекта…"), run: pickProject },
     { id: "restart", group: t("Действия"), title: t("Перезапустить агента"), run: () => project && start(project) },
-    { id: "terminal", group: t("Действия"), title: t("Терминал"), shortcut: "⌘J", keywords: t("консоль shell командная строка"), run: () => setTermOpen((v) => !v) },
+    { id: "terminal", group: t("Действия"), title: t("Терминал"), shortcut: modKey("J"), keywords: t("консоль shell командная строка"), run: () => setTermOpen((v) => !v) },
     ...(s.items.length
       ? [
           { id: "export-md", group: t("Действия"), title: t("Экспорт сессии в Markdown"), keywords: t("сохранить файл md"), run: () => exportSession("md") },
@@ -1193,7 +1205,7 @@ export default function App() {
           {projectName && <span className="chip">{projectName}</span>}
           <span style={{ flex: 1 }} />
           {project && (
-            <button className={`chip changes-chip ${termOpen ? "active" : ""}`} onClick={() => setTermOpen((v) => !v)} title={t("Терминал (⌘J)")}>
+            <button className={`chip changes-chip ${termOpen ? "active" : ""}`} onClick={() => setTermOpen((v) => !v)} title={t("Терминал ({key})", { key: modKey("J") })}>
               {t("Терминал")}
             </button>
           )}
