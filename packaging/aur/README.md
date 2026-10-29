@@ -36,7 +36,14 @@ Users install it with `yay -S octopus-ai-bin`, or on Omarchy with `omarchy pkg a
 
 ## Testing a change
 
-In a clean container, with a `.deb` built locally (`npx tauri build --config src-tauri/tauri.release.conf.json --bundles deb`):
+In a clean container, with a `.deb` built locally. Without the release signing key, turn the updater files off:
+
+```sh
+scripts/fetch-engine.sh x86_64-unknown-linux-gnu
+npx tauri build --config src-tauri/tauri.release.conf.json --config '{"bundle":{"createUpdaterArtifacts":false}}' --bundles deb
+```
+
+Then:
 
 ```sh
 scripts/aur-bump.sh 0.3.0 src-tauri/target/release/bundle/deb/Octopus_0.3.0_amd64.deb
