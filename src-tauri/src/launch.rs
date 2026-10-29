@@ -38,10 +38,16 @@ pub fn on_first_launch<R: Runtime>(app: &AppHandle<R>) {
 
 /// A second launch: bring the window forward and pass its session on.
 pub fn on_second_launch<R: Runtime>(app: &AppHandle<R>, args: Vec<String>) {
-    crate::shell::show_main(app);
-    if let Some(id) = session_arg(args.into_iter().skip(1)) {
-        let _ = app.emit("open-session", id);
+    match session_arg(args.into_iter().skip(1)) {
+        Some(id) => open_session(app, id),
+        None => crate::shell::show_main(app),
     }
+}
+
+/// Shows the window and tells the web side to open the session (also a notification click).
+pub fn open_session<R: Runtime>(app: &AppHandle<R>, id: String) {
+    crate::shell::show_main(app);
+    let _ = app.emit("open-session", id);
 }
 
 /// The session the first launch asked for, once (the web side calls this on start).

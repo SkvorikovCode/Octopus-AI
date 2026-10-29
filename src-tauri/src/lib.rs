@@ -12,6 +12,7 @@ mod checkpoints;
 mod files;
 mod gitops;
 mod instructions;
+mod notify;
 mod stats;
 mod status;
 mod workspace;
@@ -41,6 +42,7 @@ pub fn run() {
         .manage(shell::ShellState::default())
         .manage(launch::LaunchState::default())
         .manage(status::StatusState::default())
+        .manage(notify::NotifyState::default())
         .setup(|app| {
             launch::on_first_launch(app.handle());
             Ok(())
@@ -101,6 +103,8 @@ pub fn run() {
             shell::app_self_updates,
             shell::app_quit,
             status::app_set_status,
+            notify::app_notify,
+            notify::app_notify_close,
         ])
         .on_window_event(|window, event| {
             shell::on_window_event(window, event);
