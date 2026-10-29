@@ -14,6 +14,7 @@ mod gitops;
 mod instructions;
 mod stats;
 mod status;
+mod tray;
 mod workspace;
 mod worktrees;
 
@@ -41,6 +42,7 @@ pub fn run() {
         .manage(shell::ShellState::default())
         .manage(launch::LaunchState::default())
         .manage(status::StatusState::default())
+        .manage(tray::TrayState::default())
         .setup(|app| {
             launch::on_first_launch(app.handle());
             Ok(())
@@ -101,6 +103,7 @@ pub fn run() {
             shell::app_self_updates,
             shell::app_quit,
             status::app_set_status,
+            tray::app_set_keep_in_tray,
         ])
         .on_window_event(|window, event| {
             shell::on_window_event(window, event);

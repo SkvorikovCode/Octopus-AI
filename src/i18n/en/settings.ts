@@ -25,6 +25,8 @@ const en: Record<string, string> = {
   "Блок рассуждений модели разворачивается сразу": "The model's reasoning block opens right away",
   "Уведомления": "Notifications",
   "Системные уведомления": "System notifications",
+  "Оставаться в трее при закрытии": "Keep running in the tray when closed",
+  "Агенты продолжают работать. Окно вернёт меню значка в трее или команда octopus-ai --show": "Agents keep working. Bring the window back from the tray icon's menu or with octopus-ai --show",
   "Когда агент закончил или ждёт ответа, а окно в фоне": "When the agent finishes or waits for a reply and the window is in the background",
   "Модели и провайдеры": "Models and providers",
   "Подключайте свои OpenAI- и Anthropic-совместимые серверы.": "Connect your own OpenAI- and Anthropic-compatible servers.",

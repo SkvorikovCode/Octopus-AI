@@ -21,6 +21,7 @@ const DEFAULTS = {
   theme: "dark",
   budgetDaily: null,
   budgetSession: null,
+  keepInTray: false,
 };
 
 function setNavigatorLanguages(langs: string[]) {
@@ -227,5 +228,15 @@ describe("applySettings (DOM)", () => {
     document.documentElement.dataset.theme = "tampered";
     s.applySettings();
     expect(document.documentElement.dataset.theme).toBe("light");
+  });
+});
+
+describe("keepInTray", () => {
+  it("is off by default, keeps a stored boolean and drops anything else", async () => {
+    expect(s.getSettings().keepInTray).toBe(false);
+    localStorage.setItem(KEY, JSON.stringify({ keepInTray: true }));
+    expect((await load()).getSettings().keepInTray).toBe(true);
+    localStorage.setItem(KEY, JSON.stringify({ keepInTray: "yes" }));
+    expect((await load()).getSettings().keepInTray).toBe(false);
   });
 });
