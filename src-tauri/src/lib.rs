@@ -12,6 +12,7 @@ mod checkpoints;
 mod files;
 mod gitops;
 mod instructions;
+mod palette;
 mod stats;
 mod status;
 mod workspace;
@@ -43,6 +44,7 @@ pub fn run() {
         .manage(status::StatusState::default())
         .setup(|app| {
             launch::on_first_launch(app.handle());
+            palette::watch(app.handle());
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -101,6 +103,7 @@ pub fn run() {
             shell::app_self_updates,
             shell::app_quit,
             status::app_set_status,
+            palette::palette_read,
         ])
         .on_window_event(|window, event| {
             shell::on_window_event(window, event);

@@ -1,6 +1,7 @@
 // App preferences: a tiny store in localStorage with a React hook.
 
 import { useSyncExternalStore } from "react";
+import { PALETTE_KEYS, type Palette } from "./palette";
 
 export type Settings = {
   /** Accent color for actions and "live" states. */
@@ -18,8 +19,11 @@ export type Settings = {
   tilesMode: "full" | "compact";
   /** Interface language: follow the system, or fixed. */
   language: "auto" | "ru" | "en";
-  /** Color theme: the dark brand look (default), light paper, or follow the system. */
-  theme: "auto" | "dark" | "light";
+  /** Color theme: the dark brand look (default), light paper, follow the system's light or
+   *  dark, or "system": the colors of an outside palette (see palette.ts) while there is one. */
+  theme: "auto" | "dark" | "light" | "system";
+  /** The user picked the theme. Until then an outside palette, once there is one, wins. */
+  themeChosen: boolean;
   /** Spending limit per day across all projects, USD. null = off. */
   budgetDaily: number | null;
   /** Spending limit per session, USD. null = off. */
@@ -37,6 +41,7 @@ export const DEFAULT_SETTINGS: Settings = {
   tilesMode: "full",
   language: "auto",
   theme: "dark",
+  themeChosen: false,
   budgetDaily: null,
   budgetSession: null,
 };
@@ -71,7 +76,9 @@ function sanitize(v: unknown): Settings {
     // Before the modes there was an on/off switch; "off" maps to the least space taken.
     tilesMode: o.tilesMode === undefined && o.showTiles === false ? "compact" : pick("tilesMode", oneOf("full", "compact")),
     language: pick("language", oneOf("auto", "ru", "en")),
-    theme: pick("theme", oneOf("auto", "dark", "light")),
+    theme: pick("theme", oneOf("auto", "dark", "light", "system")),
+    // Stored before the flag existed: anything but the default was a choice.
+    themeChosen: o.themeChosen === true || oneOf("auto", "light", "system")(o.theme),
     budgetDaily: pick("budgetDaily", limit),
     budgetSession: pick("budgetSession", limit),
   };
@@ -98,6 +105,35 @@ export function resetSettings() {
   updateSettings(DEFAULT_SETTINGS);
 }
 
+let palette: Palette | null = null;
+
+export function getPalette(): Palette | null {
+  return palette;
+}
+
+/** A new outside palette (or none): repaint, and let Settings offer or drop "system". */
+export function setPalette(p: Palette | null) {
+  palette = p;
+  applySettings(current);
+  listeners.forEach((l) => l());
+}
+
+export function usePalette(): Palette | null {
+  return useSyncExternalStore(
+    (l) => {
+      listeners.add(l);
+      return () => listeners.delete(l);
+    },
+    getPalette,
+  );
+}
+
+/** The theme in effect: "system" needs a palette, and takes over until the user picks a theme. */
+export function effectiveTheme(s: Settings, p: Palette | null = palette): Settings["theme"] {
+  if (p && (s.theme === "system" || !s.themeChosen)) return "system";
+  return s.theme === "system" ? "dark" : s.theme;
+}
+
 export function useSettings(): Settings {
   return useSyncExternalStore(
     (l) => {
@@ -111,11 +147,28 @@ export function useSettings(): Settings {
 /** Pushes settings that live in CSS onto the document. */
 export function applySettings(s: Settings = current) {
   const root = document.documentElement;
-  root.style.setProperty("--accent", s.accent);
-  root.style.setProperty("--accent-soft", hexAlpha(s.accent, 0.1));
-  root.style.setProperty("--accent-deep", readableOnPaper(s.accent));
-  root.dataset.theme = s.theme;
-  root.dataset.scheme = resolveScheme(s.theme);
+  const theme = effectiveTheme(s);
+  const p = theme === "system" ? palette : null;
+  const accent = p?.colors.accent ?? s.accent;
+  root.style.setProperty("--accent", accent);
+  root.style.setProperty("--accent-soft", hexAlpha(accent, 0.1));
+  root.style.setProperty("--accent-deep", readableOnPaper(accent));
+  root.dataset.theme = theme;
+  root.dataset.scheme = p ? p.scheme : resolveScheme(theme);
+  // The palette's colors over the scheme's own; without one, the stylesheet's.
+  for (const key of PALETTE_KEYS) {
+    if (key === "accent") continue;
+    const c = p?.colors[key];
+    if (c) root.style.setProperty(`--${key}`, c);
+    else root.style.removeProperty(`--${key}`);
+  }
+  if (p?.colors.composer) root.style.setProperty("--composer-glass", hexAlpha(p.colors.composer, p.scheme === "light" ? 0.92 : 0.88));
+  else root.style.removeProperty("--composer-glass");
+  // The page's corner glow is the brand's warm orange; under a palette it takes the accent's hue.
+  if (p && p.scheme === "dark") root.style.setProperty("--glow-1", hexAlpha(accent, 0.1));
+  else root.style.removeProperty("--glow-1");
+  if (p) root.style.setProperty("--glow-2", hexAlpha(accent, p.scheme === "light" ? 0.08 : 0.05));
+  else root.style.removeProperty("--glow-2");
   watchScheme();
   const nav = (typeof navigator !== "undefined" && (navigator.languages?.[0] ?? navigator.language)) || "en";
   root.lang = s.language === "auto" ? (nav.toLowerCase().startsWith("ru") ? "ru" : "en") : s.language;
@@ -131,7 +184,7 @@ function hexAlpha(hex: string, a: number) {
 
 /** The scheme the CSS paints: "auto" follows the system. */
 export function resolveScheme(theme: Settings["theme"]): "light" | "dark" {
-  if (theme !== "auto") return theme;
+  if (theme !== "auto") return theme === "light" ? "light" : "dark";
   const mq = typeof window !== "undefined" && typeof window.matchMedia === "function" ? window.matchMedia("(prefers-color-scheme: light)") : null;
   return mq?.matches ? "light" : "dark";
 }

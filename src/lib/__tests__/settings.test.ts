@@ -19,6 +19,7 @@ const DEFAULTS = {
   tilesMode: "full",
   language: "auto",
   theme: "dark",
+  themeChosen: false,
   budgetDaily: null,
   budgetSession: null,
 };
@@ -64,7 +65,7 @@ describe("load from storage", () => {
   it("merges a partial stored object with the defaults", async () => {
     localStorage.setItem(KEY, JSON.stringify({ theme: "light", budgetDaily: 5 }));
     const fresh = await load();
-    expect(fresh.getSettings()).toEqual({ ...DEFAULTS, theme: "light", budgetDaily: 5 });
+    expect(fresh.getSettings()).toEqual({ ...DEFAULTS, theme: "light", themeChosen: true, budgetDaily: 5 });
   });
 
   it.each(["{not json", "null", "42"])("falls back to defaults for stored %s", async (raw) => {
@@ -227,5 +228,53 @@ describe("applySettings (DOM)", () => {
     document.documentElement.dataset.theme = "tampered";
     s.applySettings();
     expect(document.documentElement.dataset.theme).toBe("light");
+  });
+});
+
+describe("outside palette", () => {
+  const palette = { name: "tokyo-night", scheme: "light" as const, colors: { bg: "#1a1b26", ink: "#c0caf5", accent: "#7aa2f7", composer: "#202230" } };
+  const root = () => document.documentElement;
+
+  it("takes over until the user picks a theme, and gives way once they do", () => {
+    s.setPalette(palette);
+    expect(s.effectiveTheme(s.getSettings())).toBe("system");
+    s.updateSettings({ theme: "dark", themeChosen: true });
+    expect(s.effectiveTheme(s.getSettings())).toBe("dark");
+    s.updateSettings({ theme: "system", themeChosen: true });
+    expect(s.effectiveTheme(s.getSettings())).toBe("system");
+  });
+
+  it("falls back to dark when \"system\" is chosen but the palette is gone", () => {
+    s.updateSettings({ theme: "system", themeChosen: true });
+    s.setPalette(null);
+    expect(s.effectiveTheme(s.getSettings())).toBe("dark");
+    expect(root().dataset.scheme).toBe("dark");
+  });
+
+  it("a theme stored before the flag counts as chosen unless it was the default", async () => {
+    localStorage.setItem(KEY, JSON.stringify({ theme: "light" }));
+    expect((await load()).getSettings().themeChosen).toBe(true);
+    localStorage.setItem(KEY, JSON.stringify({ theme: "dark" }));
+    expect((await load()).getSettings().themeChosen).toBe(false);
+  });
+
+  it("paints the palette's colors, scheme and accent, and removes them when another theme is picked", () => {
+    s.updateSettings({ accent: "#FF8A1F" });
+    s.setPalette(palette);
+    expect(root().dataset.theme).toBe("system");
+    expect(root().dataset.scheme).toBe("light");
+    expect(root().style.getPropertyValue("--bg")).toBe("#1a1b26");
+    expect(root().style.getPropertyValue("--accent")).toBe("#7aa2f7");
+    expect(root().style.getPropertyValue("--composer-glass")).toBe("rgba(32, 34, 48, 0.92)");
+    expect(root().style.getPropertyValue("--panel")).toBe("");
+    expect(root().style.getPropertyValue("--glow-2")).toBe("rgba(122, 162, 247, 0.08)");
+    expect(root().style.getPropertyValue("--glow-1")).toBe("");
+
+    s.updateSettings({ theme: "dark", themeChosen: true });
+    expect(root().style.getPropertyValue("--bg")).toBe("");
+    expect(root().style.getPropertyValue("--composer-glass")).toBe("");
+    expect(root().style.getPropertyValue("--glow-2")).toBe("");
+    expect(root().style.getPropertyValue("--accent")).toBe("#FF8A1F");
+    expect(root().dataset.scheme).toBe("dark");
   });
 });
