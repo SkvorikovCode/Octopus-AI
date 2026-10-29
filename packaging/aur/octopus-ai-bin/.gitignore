@@ -1,0 +1,5 @@
+# Local test files: see README.md
+*.deb
+*.pkg.tar.zst
+src/
+pkg/
