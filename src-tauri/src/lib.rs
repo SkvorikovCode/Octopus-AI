@@ -15,6 +15,7 @@ mod instructions;
 mod notify;
 mod stats;
 mod status;
+mod tray;
 mod workspace;
 mod worktrees;
 
@@ -42,6 +43,7 @@ pub fn run() {
         .manage(shell::ShellState::default())
         .manage(launch::LaunchState::default())
         .manage(status::StatusState::default())
+        .manage(tray::TrayState::default())
         .manage(notify::NotifyState::default())
         .setup(|app| {
             launch::on_first_launch(app.handle());
@@ -103,6 +105,7 @@ pub fn run() {
             shell::app_self_updates,
             shell::app_quit,
             status::app_set_status,
+            tray::app_set_keep_in_tray,
             notify::app_notify,
             notify::app_notify_close,
         ])

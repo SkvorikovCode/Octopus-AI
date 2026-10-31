@@ -2742,6 +2742,7 @@ version = "0.2.1"
 dependencies = [
  "base64 0.23.1",
  "keyring",
+ "libloading",
  "notify-rust",
  "portable-pty",
  "serde",

@@ -817,6 +817,16 @@ export default function App() {
     return map;
   }, [runtimesVersion, s.status, s.sessionId]);
 
+  // Outside macOS the tray is optional; the native side also needs the menu's words.
+  useEffect(() => {
+    if (DEMO) return;
+    invoke("app_set_keep_in_tray", {
+      enabled: settings.keepInTray,
+      showLabel: t("Показать Octopus"),
+      quitLabel: t("Завершить Octopus"),
+    }).catch(() => {});
+  }, [settings.keepInTray, settings.language]);
+
   // The desktop status file: what each agent does, for widgets outside the window.
   useEffect(() => {
     if (DEMO) return;

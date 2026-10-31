@@ -1,0 +1,50 @@
+# Maintainer: SkvorikovCode <https://github.com/SkvorikovCode>
+# Built from the .deb of a GitHub release; see packaging/aur/README.md.
+
+pkgname=octopus-ai-bin
+pkgver=0.2.1
+pkgrel=1
+pkgdesc='Desktop app for coding agents: parallel agents in isolated git worktrees, your own keys'
+arch=('x86_64')
+url='https://github.com/SkvorikovCode/Octopus-AI'
+license=('Apache-2.0' 'MIT')
+depends=('cairo' 'dbus' 'gdk-pixbuf2' 'glib2' 'glibc' 'gtk3' 'hicolor-icon-theme' 'libgcc' 'libsoup3' 'webkit2gtk-4.1')
+optdepends=(
+  'libayatana-appindicator: tray icon while the window is closed'
+  'gnome-keyring: keep provider keys in the Secret Service'
+  'kwallet: keep provider keys in the Secret Service (KDE)'
+)
+provides=('octopus-ai')
+conflicts=('octopus-ai')
+# The engine is a Bun single-file executable: stripping it cuts off the bundled code.
+options=('!strip' '!debug')
+source=("Octopus_${pkgver}_amd64.deb::${url}/releases/download/v${pkgver}/Octopus_${pkgver}_amd64.deb")
+# Set by scripts/aur-bump.sh from the release's .deb.
+sha256sums=('SKIP')
+noextract=("Octopus_${pkgver}_amd64.deb")
+
+prepare() {
+  mkdir -p deb
+  bsdtar -xf "Octopus_${pkgver}_amd64.deb" -C deb
+  bsdtar -xf deb/data.tar.* -C deb
+}
+
+package() {
+  cd deb/usr
+
+  # The app looks for its engine next to its own executable, so both live in
+  # /usr/lib/octopus-ai; `omp` is too generic a name for /usr/bin.
+  install -Dm755 bin/octopus-ai "$pkgdir/usr/lib/octopus-ai/octopus-ai"
+  install -Dm755 bin/omp "$pkgdir/usr/lib/octopus-ai/omp"
+  install -dm755 "$pkgdir/usr/bin"
+  ln -s /usr/lib/octopus-ai/octopus-ai "$pkgdir/usr/bin/octopus-ai"
+
+  # Named after the window class, so docks and launchers match the window to it.
+  install -Dm644 share/applications/Octopus.desktop "$pkgdir/usr/share/applications/octopus-ai.desktop"
+  install -Dm644 share/icons/hicolor/32x32/apps/octopus-ai.png "$pkgdir/usr/share/icons/hicolor/32x32/apps/octopus-ai.png"
+  install -Dm644 share/icons/hicolor/128x128/apps/octopus-ai.png "$pkgdir/usr/share/icons/hicolor/128x128/apps/octopus-ai.png"
+  # The .deb puts the 256 px icon in "256x256@2", which no icon theme reads.
+  install -Dm644 share/icons/hicolor/256x256@2/apps/octopus-ai.png "$pkgdir/usr/share/icons/hicolor/256x256/apps/octopus-ai.png"
+
+  install -Dm644 -t "$pkgdir/usr/share/licenses/$pkgname" lib/Octopus/engine-licenses/*
+}
