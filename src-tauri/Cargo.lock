@@ -2743,6 +2743,7 @@ dependencies = [
  "base64 0.23.1",
  "keyring",
  "libloading",
+ "notify-rust",
  "portable-pty",
  "serde",
  "serde_json",

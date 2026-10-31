@@ -2,6 +2,7 @@
 const en: Record<string, string> = {
   "Octopus ждёт вашего ответа": "Octopus needs your answer",
   "Octopus закончил": "Octopus is done",
+  "Открыть сессию": "Open session",
   "Octopus не нашёл движок, на котором работает агент. Установите его и перезапустите приложение.":
     "Octopus couldn't find the engine the agent runs on. Install it and restart the app.",
   "Агент будет читать и менять файлы только в этой папке.": "The agent reads and changes files only in this folder.",
