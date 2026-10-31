@@ -8,7 +8,7 @@ export type Settings = {
   accent: string;
   /** Whole-UI zoom, 0.85–1.25. */
   uiScale: number;
-  /** macOS notifications while the window is in the background. */
+  /** System notifications when an agent finishes or waits for a reply elsewhere. */
   notifications: boolean;
   /** "enter": Enter sends, Shift+Enter breaks; "mod-enter": ⌘Enter sends, Enter breaks. */
   sendWith: "enter" | "mod-enter";

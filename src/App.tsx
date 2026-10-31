@@ -35,10 +35,10 @@ import { displayPath } from "./lib/instructions";
 import { approvePrompt, planPrompt, revisePrompt } from "./lib/plan";
 import { DEMO_PROJECT, DEMO_SESSIONS, DemoClient } from "./lib/demo";
 import { OmpClient, type Frame } from "./lib/omp";
-import { describeApproval, initialSession, type Ask } from "./lib/session";
+import { describeApproval, initialSession, type Ask, type Status } from "./lib/session";
 import { Runtime, rememberCheckpoint, sessionCheckpoints, type RuntimeSnapshot } from "./lib/runtime";
 import { checkpointChanges, createCheckpoint, restoreCheckpoint, type CheckpointChange } from "./lib/checkpoints";
-import { notifyIfAway } from "./lib/notify";
+import { notifySession, settleNotices } from "./lib/notify";
 import { askedSessionStep } from "./lib/launch";
 import { statusSnapshot } from "./lib/status";
 import { fileStem, sessionToMarkdown } from "./lib/exportMd";
@@ -286,13 +286,14 @@ export default function App() {
         }
         if (frame.type === "extension_ui_request" && ["confirm", "select", "input", "editor"].includes(frame.method)) {
           const tool = describeApproval(frame.title, frame.options);
-          notifyIfAway(t("Octopus ждёт вашего ответа"), tool ? [`${t(tool.action)}?`, ...tool.details].join(" · ") : frame.title || frame.message || t("Нужно решение"));
+          const ask = tool ? [`${t(tool.action)}?`, ...tool.details].join(" · ") : frame.title || frame.message || t("Нужно решение");
+          notifySession(rt.state.sessionId, "waiting", t("Octopus ждёт вашего ответа"), ask, isActive());
           if (!isActive()) rt.setUnread(true);
         }
         if (frame.type === "agent_end" && frame.isTerminal !== false) {
           const last = [...(frame.messages ?? [])].reverse().find((m: any) => m?.role === "assistant");
           const text = (Array.isArray(last?.content) ? last.content : []).filter((c: any) => c?.type === "text").map((c: any) => c.text).join(" ").trim();
-          notifyIfAway(t("Octopus закончил"), text || t("Задача выполнена"));
+          notifySession(rt.state.sessionId, "finished", t("Octopus закончил"), text || t("Задача выполнена"), isActive());
           if (rt.snap.plan === "planning") rt.setPlan("ready");
           refreshSpend();
           if (!isActive()) rt.setUnread(true);
@@ -843,6 +844,20 @@ export default function App() {
       }));
     invoke("app_set_status", { snapshot: statusSnapshot(views) }).catch(() => {});
   }, [runtimesVersion, s.status, s.sessionId, s.title, s.turnStartedAt]);
+
+  // Notification cards leave the screen once they no longer need the user.
+  const settle = useRef(() => {});
+  settle.current = () => {
+    const statuses = new Map<string, Status>();
+    for (const r of runtimes.current.values()) if (!r.disposed && r.state.sessionId) statuses.set(r.state.sessionId, r.state.status);
+    settleNotices(statuses, s.sessionId);
+  };
+  useEffect(() => settle.current(), [runtimesVersion, s.status, s.sessionId]);
+  useEffect(() => {
+    const onFocus = () => settle.current();
+    window.addEventListener("focus", onFocus);
+    return () => window.removeEventListener("focus", onFocus);
+  }, []);
 
   // Native shell: quitting asks while any agent (in any session) works or waits for an answer.
   const anyBusy = [...runtimes.current.values()].some((r) => !r.disposed && r.busy);
