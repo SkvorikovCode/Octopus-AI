@@ -12,6 +12,7 @@ mod checkpoints;
 mod files;
 mod gitops;
 mod instructions;
+mod palette;
 mod notify;
 mod stats;
 mod status;
@@ -47,6 +48,7 @@ pub fn run() {
         .manage(notify::NotifyState::default())
         .setup(|app| {
             launch::on_first_launch(app.handle());
+            palette::watch(app.handle());
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -105,6 +107,7 @@ pub fn run() {
             shell::app_self_updates,
             shell::app_quit,
             status::app_set_status,
+            palette::palette_read,
             tray::app_set_keep_in_tray,
             notify::app_notify,
             notify::app_notify_close,

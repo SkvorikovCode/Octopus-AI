@@ -2,8 +2,10 @@ import { useEffect, useId, useState, type ReactElement, type ReactNode } from "r
 import {
   ACCENTS,
   DEFAULT_SETTINGS,
+  effectiveTheme,
   resetSettings,
   updateSettings,
+  usePalette,
   useSettings,
   type Settings,
 } from "../lib/settings";
@@ -84,6 +86,8 @@ export function SettingsScreen({
   // The budget section lives in the models tab now; a "budget" request opens models.
   const tab: SettingsTab = requestedTab === "budget" ? "models" : requestedTab;
   const s = useSettings();
+  const palette = usePalette();
+  const theme = effectiveTheme(s, palette);
   const [armed, setArmed] = useState(false);
 
   // The reset confirmation disarms itself after 3 seconds.
@@ -156,46 +160,53 @@ export function SettingsScreen({
               />
             </Row>
 
-            <Row label={t("Тема")}>
+            <Row
+              label={t("Тема")}
+              hint={theme === "system" ? (palette?.name ? t("Цвета и акцент темы {name}", { name: palette.name }) : t("Цвета и акцент темы рабочего стола")) : undefined}
+            >
               <Segmented<Settings["theme"]>
                 label={t("Тема")}
                 options={[
+                  // An outside palette (on Omarchy, from its plugin) offers the desktop theme's colors.
+                  ...(palette ? [{ value: "system" as const, text: t("Рабочий стол") }] : []),
                   { value: "dark", text: t("Тёмная") },
                   { value: "light", text: t("Светлая") },
                   { value: "auto", text: t("Как в системе") },
                 ]}
-                value={s.theme}
-                onChange={(v) => updateSettings({ theme: v })}
+                value={theme}
+                onChange={(v) => updateSettings({ theme: v, themeChosen: true })}
               />
             </Row>
 
-            <Row label={t("Акцент")} hint={t("Кнопки и активные состояния")}>
-              <div className="set-swatches">
-                {ACCENTS.map((c) => (
-                  <button
-                    key={c}
-                    type="button"
-                    className="set-swatch"
-                    style={{ background: c }}
-                    aria-pressed={s.accent === c}
-                    aria-label={t("Акцент {color}", { color: c })}
-                    title={c}
-                    onClick={() => updateSettings({ accent: c })}
-                  />
-                ))}
-                <label
-                  className={"set-swatch set-custom" + (customAccent ? " on" : "")}
-                  title={t("Свой цвет")}
-                >
-                  <input
-                    type="color"
-                    aria-label={t("Свой цвет акцента")}
-                    value={pickerValue}
-                    onChange={(e) => updateSettings({ accent: e.target.value })}
-                  />
-                </label>
-              </div>
-            </Row>
+            {theme !== "system" && (
+              <Row label={t("Акцент")} hint={t("Кнопки и активные состояния")}>
+                <div className="set-swatches">
+                  {ACCENTS.map((c) => (
+                    <button
+                      key={c}
+                      type="button"
+                      className="set-swatch"
+                      style={{ background: c }}
+                      aria-pressed={s.accent === c}
+                      aria-label={t("Акцент {color}", { color: c })}
+                      title={c}
+                      onClick={() => updateSettings({ accent: c })}
+                    />
+                  ))}
+                  <label
+                    className={"set-swatch set-custom" + (customAccent ? " on" : "")}
+                    title={t("Свой цвет")}
+                  >
+                    <input
+                      type="color"
+                      aria-label={t("Свой цвет акцента")}
+                      value={pickerValue}
+                      onChange={(e) => updateSettings({ accent: e.target.value })}
+                    />
+                  </label>
+                </div>
+              </Row>
+            )}
 
             <Row label={t("Масштаб интерфейса")} hint={t("Размер всего окна")}>
               <Segmented
