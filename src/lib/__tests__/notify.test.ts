@@ -75,6 +75,23 @@ describe("notifySession", () => {
     expect(invoke).toHaveBeenCalledWith("app_notify_close", { sessionId: "a" });
   });
 
+  it("closes a card whose session came on screen while it was still being shown", async () => {
+    // app_notify resolves a few microtasks later, so the settle below lands mid-flight.
+    vi.mocked(invoke).mockImplementation((cmd) =>
+      cmd === "app_notify" ? Promise.resolve().then(() => Promise.resolve()).then(() => undefined) : Promise.resolve(undefined),
+    );
+
+    const card = notifySession("a", "finished", "Done", "All good", false);
+    await Promise.resolve();
+    expect(invoke).toHaveBeenCalledWith("app_notify", expect.anything());
+
+    // The user switches to that session before the card is up.
+    settleNotices(statuses([["a", "idle"]]), "a");
+    await card;
+
+    expect(invoke).toHaveBeenCalledWith("app_notify_close", { sessionId: "a" });
+  });
+
   it("stays quiet for the session on screen in a focused window, and with notifications off", async () => {
     await notifySession("a", "finished", "Done", "", true);
     vi.mocked(getSettings).mockReturnValue({ notifications: false } as never);

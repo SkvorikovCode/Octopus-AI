@@ -25,7 +25,7 @@ const en: Record<string, string> = {
   "Блок рассуждений модели разворачивается сразу": "The model's reasoning block opens right away",
   "Уведомления": "Notifications",
   "Системные уведомления": "System notifications",
-  "Когда агент закончил или ждёт ответа, а окно в фоне": "When the agent finishes or waits for a reply and the window is in the background",
+  "Когда агент закончил или ждёт ответа в другой сессии": "When the agent finishes or waits for a reply in another session",
   "Модели и провайдеры": "Models and providers",
   "Подключайте свои OpenAI- и Anthropic-совместимые серверы.": "Connect your own OpenAI- and Anthropic-compatible servers.",
   "Провайдеры моделей": "Model providers",

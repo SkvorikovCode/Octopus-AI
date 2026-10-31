@@ -36,7 +36,11 @@ pub async fn app_notify<R: Runtime>(
         use notify_rust::{ActionResponse, Notification};
         use tauri::Manager;
 
-        if let Some(old) = state.cards.lock().unwrap().remove(&session_id) {
+        // One guard for the whole replace-then-show. Releasing it in between lets
+        // two cards for one session reach the screen at once; the map then holds
+        // only the second, so the first can never be closed and stays up for good.
+        let mut cards = state.cards.lock().unwrap();
+        if let Some(old) = cards.remove(&session_id) {
             old.close();
         }
         let handle = Notification::new()
@@ -48,7 +52,8 @@ pub async fn app_notify<R: Runtime>(
             .show()
             .map_err(|e| e.to_string())?;
         let id = handle.id();
-        state.cards.lock().unwrap().insert(session_id.clone(), handle);
+        cards.insert(session_id.clone(), handle);
+        drop(cards);
         // Waits until the card is clicked or closed; a closed card ends the wait.
         std::thread::spawn(move || {
             let _ = notify_rust::handle_action(id, |response| {
