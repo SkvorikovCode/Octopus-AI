@@ -56,11 +56,12 @@ fn ask_before_quit<R: Runtime>(app: &AppHandle<R>) {
     let _ = app.emit("quit-requested", ());
 }
 
-/// Window close hides the window instead (macOS only: elsewhere nothing would bring it back).
+/// Window close hides the window instead: always on macOS (the Dock brings it back),
+/// elsewhere only with the tray on (see tray.rs), since otherwise nothing would.
 pub fn on_window_event<R: Runtime>(window: &tauri::Window<R>, event: &WindowEvent) {
-    #[cfg(target_os = "macos")]
     if let WindowEvent::CloseRequested { api, .. } = event {
-        if window.label() == "main" && !window.state::<ShellState>().quitting.load(Ordering::Relaxed) {
+        let hides = cfg!(target_os = "macos") || crate::tray::keeps_running(window.app_handle());
+        if hides && window.label() == "main" && !window.state::<ShellState>().quitting.load(Ordering::Relaxed) {
             api.prevent_close();
             let _ = window.hide();
         }

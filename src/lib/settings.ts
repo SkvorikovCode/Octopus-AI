@@ -28,6 +28,8 @@ export type Settings = {
   budgetDaily: number | null;
   /** Spending limit per session, USD. null = off. */
   budgetSession: number | null;
+  /** Outside macOS: closing the window hides it to the tray and the agents keep working. */
+  keepInTray: boolean;
 };
 
 export const ACCENTS = ["#FF3D2E", "#FF8A1F", "#B8FF3D", "#3DE0FF", "#EEE9E2"] as const;
@@ -44,6 +46,7 @@ export const DEFAULT_SETTINGS: Settings = {
   themeChosen: false,
   budgetDaily: null,
   budgetSession: null,
+  keepInTray: false,
 };
 
 const KEY = "octopus.settings";
@@ -81,6 +84,7 @@ function sanitize(v: unknown): Settings {
     themeChosen: o.themeChosen === true || oneOf("auto", "light", "system")(o.theme),
     budgetDaily: pick("budgetDaily", limit),
     budgetSession: pick("budgetSession", limit),
+    keepInTray: pick("keepInTray", (x) => typeof x === "boolean"),
   };
 }
 

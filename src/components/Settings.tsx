@@ -20,7 +20,7 @@ import {
 import { parseLimit, todaySpend } from "../lib/budget";
 import { formatCost } from "../lib/stats";
 import { t } from "../lib/i18n";
-import { modKey } from "../lib/platform";
+import { IS_MAC, modKey } from "../lib/platform";
 import { ModelPrices, type PriceModel } from "./ModelPrices";
 import { InstructionsSection } from "./Instructions";
 import "./settings.css";
@@ -245,6 +245,21 @@ export function SettingsScreen({
               />
             </Row>
           </Section>
+
+          {!IS_MAC && (
+            <Section title={t("Окно")}>
+              <Row
+                label={t("Оставаться в трее при закрытии")}
+                hint={t("Агенты продолжают работать. Окно вернёт меню значка в трее или команда octopus-ai --show")}
+              >
+                <Toggle
+                  label={t("Оставаться в трее при закрытии")}
+                  checked={s.keepInTray}
+                  onChange={(v) => updateSettings({ keepInTray: v })}
+                />
+              </Row>
+            </Section>
+          )}
 
                 </>
               )}

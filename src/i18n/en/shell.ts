@@ -39,6 +39,7 @@ const en: Record<string, string> = {
   "Скрыть остальные": "Hide Others",
   "Показать все": "Show All",
   "Завершить Octopus": "Quit Octopus",
+  "Показать Octopus": "Show Octopus",
   "Файл": "File",
   "Закрыть окно": "Close Window",
   "Правка": "Edit",

@@ -15,6 +15,7 @@ mod instructions;
 mod palette;
 mod stats;
 mod status;
+mod tray;
 mod workspace;
 mod worktrees;
 
@@ -42,6 +43,7 @@ pub fn run() {
         .manage(shell::ShellState::default())
         .manage(launch::LaunchState::default())
         .manage(status::StatusState::default())
+        .manage(tray::TrayState::default())
         .setup(|app| {
             launch::on_first_launch(app.handle());
             palette::watch(app.handle());
@@ -104,6 +106,7 @@ pub fn run() {
             shell::app_quit,
             status::app_set_status,
             palette::palette_read,
+            tray::app_set_keep_in_tray,
         ])
         .on_window_event(|window, event| {
             shell::on_window_event(window, event);
