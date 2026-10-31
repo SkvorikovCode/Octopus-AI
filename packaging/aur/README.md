@@ -11,13 +11,20 @@
 A release must include `Octopus_<version>_amd64.deb` (the `linux-x64` job of `release.yml`).
 
 ```sh
-scripts/aur-bump.sh 0.3.0
+scripts/aur-bump.sh <version>              # without the leading v
 git -C packaging/aur/octopus-ai-bin diff   # pkgver, sha256sums, .SRCINFO
 ```
+
+The script sets `pkgrel=1`. A packaging-only fix to a version already on the AUR
+needs `pkgrel` bumped by hand in both files.
 
 Commit the change here, then push the two files to the AUR.
 
 ## Publishing
+
+Not published yet. The committed `PKGBUILD` still carries the `SKIP` checksum and
+points at `v0.2.1`, whose release has no `.deb`; the first push must wait for a
+release that carries one, and follow a `scripts/aur-bump.sh` run.
 
 The first time, with an [AUR account](https://aur.archlinux.org/register) and its SSH key:
 
@@ -29,7 +36,7 @@ Then for every release:
 
 ```sh
 cp packaging/aur/octopus-ai-bin/{PKGBUILD,.SRCINFO} ~/aur/octopus-ai-bin/
-cd ~/aur/octopus-ai-bin && git commit -am "Update to 0.3.0" && git push
+cd ~/aur/octopus-ai-bin && git commit -am "Update to <version>" && git push
 ```
 
 Users install it with `yay -S octopus-ai-bin`, or on Omarchy with `omarchy pkg aur add octopus-ai-bin`.
@@ -43,11 +50,12 @@ scripts/fetch-engine.sh x86_64-unknown-linux-gnu
 npx tauri build --config src-tauri/tauri.release.conf.json --config '{"bundle":{"createUpdaterArtifacts":false}}' --bundles deb
 ```
 
-Then:
+Then, substituting the version the build produced:
 
 ```sh
-scripts/aur-bump.sh 0.3.0 src-tauri/target/release/bundle/deb/Octopus_0.3.0_amd64.deb
-cp src-tauri/target/release/bundle/deb/Octopus_0.3.0_amd64.deb packaging/aur/octopus-ai-bin/
+ver=0.2.1   # the version in src-tauri/tauri.conf.json
+scripts/aur-bump.sh "$ver" "src-tauri/target/release/bundle/deb/Octopus_${ver}_amd64.deb"
+cp "src-tauri/target/release/bundle/deb/Octopus_${ver}_amd64.deb" packaging/aur/octopus-ai-bin/
 docker run --rm -v "$PWD/packaging/aur/octopus-ai-bin:/pkg:ro" archlinux:latest bash -c '
   pacman -Syu --noconfirm --needed base-devel namcap &&
   useradd -m b && cp -r /pkg /home/b/pkg && chown -R b /home/b/pkg &&
@@ -59,3 +67,10 @@ docker run --rm -v "$PWD/packaging/aur/octopus-ai-bin:/pkg:ro" archlinux:latest 
 `-d` builds without the dependencies installed; installing the package then pulls in exactly the declared ones; `ldd` then lists any library they do not cover.
 
 `makepkg` uses the `.deb` lying next to the PKGBUILD instead of downloading it. Do not commit that file.
+
+The bump above wrote the *local* `.deb`'s checksum into the tracked `PKGBUILD`
+and `.SRCINFO`. Revert them before committing:
+
+```sh
+git checkout packaging/aur/octopus-ai-bin/{PKGBUILD,.SRCINFO}
+```
